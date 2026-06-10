@@ -76,6 +76,12 @@ function createCard(ann: Annotation, isViewer: boolean): HTMLElement {
     card.appendChild(body);
     card.appendChild(del);
   } else {
+    card.addEventListener('click', () => {
+      const video = document.querySelector<HTMLVideoElement>('video.html5-main-video');
+      if (video) {
+        video.currentTime = ann.timestampSeconds;
+      }
+    });
     card.appendChild(tsBtn);
     card.appendChild(body);
   }

@@ -8,7 +8,7 @@
     "alarms"
   ],
   "host_permissions": [
-    "https://api.layernotes.app/*"
+    "https://silgimyukbflpayzpwic.supabase.co/*"
   ],
   "background": {
     "service_worker": "background.js",

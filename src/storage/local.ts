@@ -1,7 +1,7 @@
 import { Layer, Annotation, RemoteLayerPayload, ExportV1 } from './types';
+import { supabase } from './supabase';
 
 const CURRENT_STORAGE_VERSION = 3;
-const API_BASE = 'https://api.layernotes.app/v1';
 const DEFAULT_TOAST_DURATION = 5;
 
 function keyForOwnerToken(): string {
@@ -107,11 +107,70 @@ export const LocalStorageManager = {
     return layers;
   },
 
-  async fetchRemoteLayer(layerId: string): Promise<RemoteLayerPayload | null> {
+  async fetchRemoteLayer(layerIdOrSlug: string): Promise<RemoteLayerPayload | null> {
+    console.log('[LocalStorageManager] fetchRemoteLayer called with:', layerIdOrSlug);
     try {
-      const response = await fetch(`${API_BASE}/layers/${layerId}`);
-      if (!response.ok) return null;
-      return await response.json();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(layerIdOrSlug);
+      
+      let query = supabase.from('layers').select('*');
+      
+      if (isUuid) {
+        console.log('[LocalStorageManager] Detected UUID format');
+        query = query.eq('id', layerIdOrSlug);
+      } else {
+        console.log('[LocalStorageManager] Detected Slug format');
+        query = query.eq('slug', layerIdOrSlug);
+      }
+
+      const { data: layerData, error: layerError } = await query.single();
+
+      if (layerError) {
+        console.error('[LocalStorageManager] Supabase layer error:', JSON.stringify(layerError));
+        return null;
+      }
+      if (!layerData) {
+        console.warn('[LocalStorageManager] No layer data found for:', layerIdOrSlug);
+        return null;
+      }
+
+      console.log('[LocalStorageManager] Layer data found:', layerData.id);
+      const layerId = layerData.id;
+
+      const { data: annData, error: annError } = await supabase
+        .from('annotations')
+        .select('*')
+        .eq('layer_id', layerId);
+
+      if (annError) {
+        console.error('[LocalStorageManager] Supabase annotations error:', annError);
+        return null;
+      }
+
+      console.log('[LocalStorageManager] Annotations found:', annData?.length || 0);
+
+      const layer: Layer = {
+        id: layerData.id,
+        ownerToken: layerData.owner_token,
+        ownerName: layerData.owner_name || '',
+        youtubeVideoId: layerData.video_id,
+        title: layerData.title,
+        annotationIds: annData.map((a: any) => a.id),
+        syncState: 'synced',
+        createdAt: layerData.created_at,
+        updatedAt: layerData.updated_at
+      };
+
+      const annotations: Annotation[] = annData.map((a: any) => ({
+        id: a.id,
+        layerId: a.layer_id,
+        timestampSeconds: a.timestamp_seconds,
+        content: a.content,
+        toastDurationSeconds: a.toast_duration_seconds,
+        createdAt: a.created_at,
+        updatedAt: a.updated_at
+      }));
+
+      return { layer, annotations };
     } catch {
       return null;
     }

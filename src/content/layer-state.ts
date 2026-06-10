@@ -39,6 +39,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   toastsVisible: true,
 
   initializeForVideo: async (videoId, sharedLayerId = null) => {
+    console.log('[layerStore] initializeForVideo:', { videoId, sharedLayerId });
     get().reset();
     set({ videoId });
 
@@ -48,10 +49,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
       set({ username: storedUsername });
 
       if (sharedLayerId) {
+        console.log('[layerStore] Handling sharedLayerId:', sharedLayerId);
         set({ syncStatus: 'syncing' });
         const remotePayload = await LocalStorageManager.fetchRemoteLayer(sharedLayerId);
 
         if (remotePayload) {
+          console.log('[layerStore] Remote payload received:', remotePayload.layer.id);
           const isViewer = remotePayload.layer.ownerToken !== ownerToken;
 
           const annotationMap = new Map<string, Annotation>();
