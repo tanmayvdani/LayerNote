@@ -2,8 +2,7 @@ import { layerStore } from '../layer-state';
 import { renderCreateBar } from './annotation-form';
 import { renderTimeline } from './annotation-list';
 import { injectSidebarStyles } from './styles';
-
-const ICON_DATA_URI = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAABHpJREFUeJztmnlsFFUcx3eO3ZmWqkhSoz1caIm7ixZpg1dJbCRtYhXvkigQAzQGBf7QQIuYxlJFi5IYG5PKUS8Uqv2DBAQ80cphVVqlTbWRYCQhNhLStEYlbYp8/T5nlxRt3Z15s7Ml6Us+2eyk773f5827tz6fe+lK0kCOk0FygFS6WH7S0zPkD7KTVJEecprkpTIoO+kg+ZSUkcmknpwi93sZxH7yMznhgGEyQE5Gv4vgh0ifw/L+zQbijyfQX3prDlY/GkTNShM1K/wJc/llPhQXqXh8iW4rXyJcH1bB2PaSSfEEBmpXRXCsdRp+/TqdmAkzNUfByod1dO41bOVLhAfnaYkLbHw6goGuLOCnNFvkBxWsWaajt808/+zkYRODPfbKGY0lFboQEF1RjLNWsp6kuyownQLVFPglKvDt+wYeukvD7i0BaYHFD+jIzFBQFlGRn6kImUMk6KpA0bUqFtytoedjS2Dzej/ychU0v+yOwJx8FQerAlg6R4sJTHVVYNOzAVwyyYdZM1Qsna8hc4qCq7OUf/qwGwLl16n4rcHE2nI9OQL935nYxFa/p1RDmK0lBvQn2wzp4D0TEAwcNdHFWeiz7QZOHDAx5MIA9lQgWUwInOc46eCg/IB9+z2ylTNMA9lA6vxADXmSVJFVZDWpJmtJLXmOvMS/bSTvMD+nWhxieceSKXCEFTzBijlN4lIFzO0+AXINy67QgN3Gf4ScC7Qz+HUM3p+EoMeijBKtpvW2pQREAU8x+KuS1OpjofmsrtduSgpwXkchu43iYfAxprPR3jIkBcTgmuZx68dIJxsDkgL7KXBFigR80W4kJfARX2GGzUrr6jhd1gLZ2YCqyglU6pIC+yiQZrPSlhbgzBmgvh4oKGD+NOcCC2QFxCKjOxAQ6exZoLsbaGoCgkFnAvdpkgJiQVEdCoxMfX3Ajh1ASQmnSC3xsu6UFdhl2G+10QRib6StDZg5M/GybndDwO4aMJbA4CDQ3AyEwx4KiC6kSQicOwf09nLj1giUltqflebJCuwx7O+BYgLDw9y1dnAftY5TcUaKBrHYMqc7EOjv5xa6GgiFAMPBOIqxUHYaFbcLk22uxIWFQE6O86BHskJW4PMUbyWqZbcSX1Ig72LezH3PzHdo1mnJawFxqNknu50WBxpxjs31+C2IBhPn6g7ZA43I3GlaB3Ev30I5W//whbd58rcS37DAzQHrtmG+ZlUylxRzcbpBtU5uBWQGiZCQah3SxWc4+pwBYBaZTW4iJZq12t5LlnHGeYXlfzj6TZ6790I/kq7o9coXplWp2Ha0kO2GdRR8g8G8HrA+3yRv89m7ZKdh9W1xWPqKHCU/pF1wgJ+42JoQSLVA8Y1ZeGRhLpYvMvEY9yPjgRAX1EQFtvms33oFv2dnKriFGW8rSj3PU2SoMb6A+BVwSpTuxVyJj7xm4NQeM+X8ucvEX1viC4xMnTez9dcs0vHCcn/qqfTjxQodc0NqwgJbSfs45VWf9c8l/5tENwqTyDgkSJR4AhdF+htOB9N7HusNhgAAAABJRU5ErkJggg==`;
+import { OverlayNotificationSystem } from '../timestamp-engine';
 
 let panelExpanded = true;
 let settingsOpen = false;
@@ -20,7 +19,7 @@ export function mountSidebarUI(video: HTMLVideoElement | null): void {
   injectPanel();
 
   playerButtonObserver = new MutationObserver(() => {
-    if (!document.querySelector('.ytp-button-layer')) {
+    if (!document.querySelector('.ytp-button-layer-wrap')) {
       injectPlayerButton();
     }
   });
@@ -35,6 +34,13 @@ export function mountSidebarUI(video: HTMLVideoElement | null): void {
 
   unsubscribeStore = layerStore.subscribe(() => {
     refreshPanel();
+    const state = layerStore.getState();
+    if (!state.toastsVisible) {
+      OverlayNotificationSystem.hideAll();
+    } else {
+      OverlayNotificationSystem.showContainer();
+    }
+    updateButtonState();
   });
 }
 
@@ -43,32 +49,52 @@ function injectPlayerButton(): void {
   if (!rightControls) return;
   if (document.querySelector('.ytp-button-layer')) return;
 
-  const btn = document.createElement('button');
-  btn.className = 'ytp-button ytp-button-layer';
-  btn.title = 'Layer';
+  const btnWrap = document.createElement('div');
+  btnWrap.className = 'ytp-button-layer-wrap';
 
-  const img = document.createElement('img');
-  img.src = ICON_DATA_URI;
-  img.alt = 'Layer';
-  img.style.cssText = 'width:24px;height:24px;opacity:0.9;pointer-events:none;';
+  const toggleBtn = document.createElement('button');
+  toggleBtn.className = 'ytp-button ytp-button-layer layer-toggle-btn';
+  toggleBtn.title = 'Toggle annotations overlay';
+
+  const toggleImg = document.createElement('img');
+  toggleImg.src = chrome.runtime.getURL('icons/icon128.png');
+  toggleImg.alt = 'Toggle';
+  toggleImg.className = 'layer-btn-icon';
+  toggleBtn.appendChild(toggleImg);
 
   const indicator = document.createElement('span');
   indicator.className = 'layer-button-active-indicator';
+  toggleBtn.appendChild(indicator);
 
-  btn.appendChild(img);
-  btn.appendChild(indicator);
-  btn.addEventListener('click', (e) => {
+  toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    togglePanel();
+    layerStore.getState().toggleToastsVisible();
   });
 
-  rightControls.prepend(btn);
+  const addBtn = document.createElement('button');
+  addBtn.className = 'ytp-button ytp-button-layer layer-add-btn';
+  addBtn.title = 'Add note at current time';
+
+  const addImg = document.createElement('img');
+  addImg.src = chrome.runtime.getURL('icons/add.png');
+  addImg.alt = 'Add';
+  addImg.className = 'layer-btn-icon';
+  addBtn.appendChild(addImg);
+
+  addBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handlePlayerAddNote();
+  });
+
+  btnWrap.appendChild(toggleBtn);
+  btnWrap.appendChild(addBtn);
+  rightControls.prepend(btnWrap);
+  updateButtonState();
 }
 
 function togglePanel(): void {
   panelExpanded = !panelExpanded;
   updatePanelState();
-  updateButtonState();
 }
 
 function updatePanelState(): void {
@@ -78,10 +104,54 @@ function updatePanelState(): void {
   }
 }
 
+function handlePlayerAddNote(): void {
+  const state = layerStore.getState();
+
+  if (!state.activeLayer) {
+    layerStore.getState().createLayer('');
+    return;
+  }
+
+  if (state.isViewerMode) return;
+
+  const noteInput = document.getElementById('layer-note-input') as HTMLInputElement | null;
+  if (noteInput) {
+    const tsBadge = document.getElementById('layer-ts-badge');
+    if (currentVideo && tsBadge) {
+      tsBadge.textContent = formatPlayerTimestamp(currentVideo.currentTime);
+    }
+    noteInput.focus();
+  }
+}
+
+function formatPlayerTimestamp(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) {
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 function updateButtonState(): void {
-  const btn = document.querySelector('.ytp-button-layer');
-  if (btn) {
-    btn.classList.toggle('layer-sidebar-open', panelExpanded);
+  const state = layerStore.getState();
+  const toggleBtn = document.querySelector<HTMLButtonElement>('.layer-toggle-btn');
+  const addBtn = document.querySelector<HTMLButtonElement>('.layer-add-btn');
+
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('layer-toasts-on', state.toastsVisible);
+    if (state.toastsVisible) {
+      toggleBtn.title = 'Hide annotations overlay';
+    } else {
+      toggleBtn.title = 'Show annotations overlay';
+    }
+  }
+
+  if (addBtn) {
+    const canAdd = state.activeLayer && !state.isViewerMode;
+    addBtn.classList.toggle('layer-add-disabled', !canAdd);
+    addBtn.style.opacity = canAdd ? '0.9' : '0.4';
   }
 }
 
@@ -120,7 +190,8 @@ function buildPanel(): HTMLElement {
 
   const title = document.createElement('span');
   title.id = 'layer-panel-title';
-  title.textContent = 'Notes';
+  const displayName = state.username || 'Notes';
+  title.textContent = displayName;
   headerLeft.appendChild(chevron);
   headerLeft.appendChild(title);
 
@@ -129,6 +200,15 @@ function buildPanel(): HTMLElement {
     badge.className = 'layer-viewer-badge';
     badge.textContent = 'VIEWER';
     headerLeft.appendChild(badge);
+
+    const ownerName = state.activeLayer?.ownerName;
+    if (ownerName) {
+      const ownerLabel = document.createElement('span');
+      ownerLabel.className = 'layer-owner-name';
+      ownerLabel.textContent = `${ownerName}'s layer`;
+      ownerLabel.title = `Created by ${ownerName}`;
+      headerLeft.appendChild(ownerLabel);
+    }
   }
 
   header.appendChild(headerLeft);
@@ -262,12 +342,36 @@ function renderSettings(): HTMLElement {
   titleEl.textContent = 'Settings';
   settings.appendChild(titleEl);
 
+  const usernameRow = document.createElement('div');
+  usernameRow.className = 'layer-settings-row';
+
+  const usernameLabel = document.createElement('span');
+  usernameLabel.className = 'layer-settings-label';
+  usernameLabel.textContent = 'Username';
+
+  const usernameInput = document.createElement('input');
+  usernameInput.className = 'layer-settings-input';
+  usernameInput.type = 'text';
+  usernameInput.placeholder = 'Your name';
+  usernameInput.maxLength = 50;
+  usernameInput.value = state.username;
+  usernameInput.addEventListener('change', () => {
+    layerStore.getState().setUsername(usernameInput.value);
+  });
+  usernameInput.addEventListener('input', () => {
+    layerStore.getState().setUsername(usernameInput.value);
+  });
+
+  usernameRow.appendChild(usernameLabel);
+  usernameRow.appendChild(usernameInput);
+  settings.appendChild(usernameRow);
+
   const durationRow = document.createElement('div');
   durationRow.className = 'layer-settings-row';
 
   const durationLabel = document.createElement('span');
   durationLabel.className = 'layer-settings-label';
-  durationLabel.textContent = 'Toast duration';
+  durationLabel.textContent = 'Toast duration (default)';
 
   const durationSlider = document.createElement('input');
   durationSlider.type = 'range';

@@ -94,6 +94,8 @@ class OverlayNotificationSystem {
   private static readonly MAX_VISIBLE = 3;
 
   public static enqueue(annotations: Annotation[]): void {
+    if (!layerStore.getState().toastsVisible) return;
+
     this.ensureContainer();
 
     for (const ann of annotations) {
@@ -114,6 +116,30 @@ class OverlayNotificationSystem {
         el.remove();
         this.activeToasts.delete(annotationId);
       }, 200);
+    }
+  }
+
+  public static hideAll(): void {
+    for (const [id, el] of this.activeToasts) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+      el.style.transition = 'opacity 0.2s, transform 0.2s';
+    }
+    setTimeout(() => {
+      for (const [, el] of this.activeToasts) {
+        el.remove();
+      }
+      this.activeToasts.clear();
+      if (this.container) {
+        this.container.style.display = 'none';
+      }
+    }, 200);
+  }
+
+  public static showContainer(): void {
+    this.ensureContainer();
+    if (this.container) {
+      this.container.style.display = '';
     }
   }
 
@@ -162,16 +188,19 @@ class OverlayNotificationSystem {
   private static renderToast(ann: Annotation): void {
     if (!this.container) return;
 
-    const duration = layerStore.getState().toastDurationSeconds * 1000;
+    const duration = ann.toastDurationSeconds * 1000;
 
     const toast = document.createElement('div');
     toast.id = `layer-toast-${ann.id}`;
-    toast.style.cssText = 'position:relative;background:rgba(0,0,0,0.9);color:#fff;padding:10px 14px;border-radius:8px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.4;pointer-events:auto;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:layer-toast-appear 0.25s ease-out;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);transition:opacity 0.2s,transform 0.2s;z-index:9999!important;width:fit-content;max-width:100%;';
+    toast.style.cssText = 'position:relative;background:rgba(0,0,0,0.9);color:#fff;padding:10px 14px;border-radius:8px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.4;pointer-events:auto;user-select:text;box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:layer-toast-appear 0.25s ease-out;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);transition:opacity 0.2s,transform 0.2s;z-index:9999!important;width:fit-content;max-width:100%;';
 
     const timeStr = this.formatTimestamp(ann.timestampSeconds);
-    toast.innerHTML = `<div style="font-size:11px;color:#3ea6ff;margin-bottom:3px;font-weight:500;">${timeStr}</div><div>${this.escapeHtml(ann.content)}</div>`;
+    const contentHtml = this.linkifyContent(ann.content);
+    toast.innerHTML = `<div style="font-size:11px;color:#3ea6ff;margin-bottom:3px;font-weight:500;">${timeStr}</div><div>${contentHtml}</div>`;
 
-    toast.addEventListener('click', () => {
+    toast.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') return;
       this.dismiss(ann.id);
     });
 
@@ -197,6 +226,12 @@ class OverlayNotificationSystem {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  private static linkifyContent(text: string): string {
+    const urlPattern = /(https?:\/\/[^\s<>"')\]]+)/g;
+    const escaped = OverlayNotificationSystem.escapeHtml(text);
+    return escaped.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3ea6ff;text-decoration:underline;pointer-events:auto;">$1</a>');
   }
 }
 

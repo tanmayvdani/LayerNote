@@ -1,10 +1,15 @@
 import { Layer, Annotation, RemoteLayerPayload, ExportV1 } from './types';
 
-const CURRENT_STORAGE_VERSION = 2;
+const CURRENT_STORAGE_VERSION = 3;
 const API_BASE = 'https://api.layernotes.app/v1';
+const DEFAULT_TOAST_DURATION = 5;
 
 function keyForOwnerToken(): string {
   return 'ownerToken';
+}
+
+function keyForUsername(): string {
+  return 'username';
 }
 
 function keyForLayer(layerId: string): string {
@@ -32,6 +37,16 @@ export const LocalStorageManager = {
     const newToken = crypto.randomUUID();
     await chrome.storage.local.set({ [keyForOwnerToken()]: newToken });
     return newToken;
+  },
+
+  async getUsername(): Promise<string> {
+    const result = await chrome.storage.local.get(keyForUsername());
+    return result[keyForUsername()] || '';
+  },
+
+  async setUsername(name: string): Promise<void> {
+    const sanitized = name.trim().substring(0, 50);
+    await chrome.storage.local.set({ [keyForUsername()]: sanitized });
   },
 
   async findLayerByVideo(videoId: string): Promise<Layer | null> {
@@ -103,6 +118,11 @@ export const LocalStorageManager = {
   },
 
   queueBackgroundSync(_layerId: string): void {
+    try {
+      chrome.runtime.sendMessage({ type: 'TRIGGER_SYNC' });
+    } catch {
+      // Extension context may be invalidated
+    }
   },
 
   async runMigrationPipeline(): Promise<void> {
@@ -117,8 +137,34 @@ export const LocalStorageManager = {
       migratoryState = this.migrateV1ToV2(migratoryState);
     }
 
+    if (currentVersion < 3) {
+      migratoryState = this.migrateV2ToV3(migratoryState);
+    }
+
     migratoryState.storageVersion = CURRENT_STORAGE_VERSION;
     await chrome.storage.local.set(migratoryState);
+  },
+
+  migrateV2ToV3(oldState: Record<string, any>): Record<string, any> {
+    const updatedState = { ...oldState };
+    const keys = Object.keys(oldState);
+
+    for (const key of keys) {
+      if (key.startsWith('layer:')) {
+        const layer = oldState[key];
+        if (layer && !('ownerName' in layer)) {
+          updatedState[key] = { ...layer, ownerName: '' };
+        }
+      }
+      if (key.startsWith('annotation:')) {
+        const ann = oldState[key];
+        if (ann && !('toastDurationSeconds' in ann)) {
+          updatedState[key] = { ...ann, toastDurationSeconds: DEFAULT_TOAST_DURATION };
+        }
+      }
+    }
+
+    return updatedState;
   },
 
   migrateV1ToV2(oldState: Record<string, any>): Record<string, any> {
@@ -150,7 +196,7 @@ export const LocalStorageManager = {
     const layer = await this.getLayer(layerId);
     if (!layer) return null;
     const annotations = await this.getAnnotationsForLayer(layerId);
-    return { version: 2, layer, annotations };
+    return { version: 3, layer, annotations };
   },
 
   async importLayer(payload: ExportV1): Promise<void> {
@@ -163,7 +209,14 @@ export const LocalStorageManager = {
     layer.annotationIds = payload.annotations.map(a => a.id);
     layer.syncState = 'queued';
     layer.updatedAt = new Date().toISOString();
-    await this.saveLayerLocally(layer, payload.annotations);
+    if (!layer.ownerName) {
+      layer.ownerName = '';
+    }
+    const annotations = payload.annotations.map(a => ({
+      ...a,
+      toastDurationSeconds: a.toastDurationSeconds ?? DEFAULT_TOAST_DURATION,
+    }));
+    await this.saveLayerLocally(layer, annotations);
     this.queueBackgroundSync(layer.id);
   }
 };

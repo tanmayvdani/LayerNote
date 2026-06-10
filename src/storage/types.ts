@@ -3,6 +3,7 @@ export type SyncState = 'synced' | 'queued' | 'error';
 export interface Layer {
   id: string;
   ownerToken: string;
+  ownerName: string;
   youtubeVideoId: string;
   title: string;
   annotationIds: string[];
@@ -16,6 +17,7 @@ export interface Annotation {
   layerId: string;
   timestampSeconds: number;
   content: string;
+  toastDurationSeconds: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,7 +28,7 @@ export interface RemoteLayerPayload {
 }
 
 export interface ExportV1 {
-  version: 2;
+  version: 3;
   layer: Layer;
   annotations: Annotation[];
 }

@@ -39,6 +39,8 @@ function injectOverlayStyles(): void {
   document.head.appendChild(style);
 }
 
+let lastInitializedVideoId: string | null = null;
+
 export function initializeLinkInterception(): void {
   window.addEventListener('yt-navigate-finish', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -46,6 +48,8 @@ export function initializeLinkInterception(): void {
     const sharedLayerId = urlParams.get('layer');
 
     if (videoId) {
+      if (videoId === lastInitializedVideoId && !sharedLayerId) return;
+      lastInitializedVideoId = videoId;
       layerStore.getState().initializeForVideo(videoId, sharedLayerId);
     }
   });
@@ -62,6 +66,7 @@ export async function initializeExtension(): Promise<void> {
   const sharedLayerId = currentUrl.searchParams.get('layer');
 
   if (videoId) {
+    lastInitializedVideoId = videoId;
     await layerStore.getState().initializeForVideo(videoId, sharedLayerId);
 
     const video = await waitForVideoElement();

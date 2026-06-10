@@ -380,6 +380,26 @@ export const SIDEBAR_STYLES = `
   text-align: right;
 }
 
+.layer-settings-input {
+  background: #181818;
+  border: 1px solid #272727;
+  color: #f1f1f1;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 140px;
+  outline: none;
+}
+
+.layer-settings-input:focus {
+  border-color: #3ea6ff;
+}
+
+.layer-settings-input::placeholder {
+  color: #717171;
+}
+
 .layer-settings-share {
   display: flex;
   gap: 6px;
@@ -462,7 +482,22 @@ export const SIDEBAR_STYLES = `
   margin-left: 6px;
 }
 
-/* ── Player button ── */
+.layer-owner-name {
+  font-size: 11px;
+  color: #717171;
+  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Player buttons ── */
+
+.ytp-button-layer-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
 
 .ytp-button-layer {
   cursor: pointer;
@@ -470,6 +505,10 @@ export const SIDEBAR_STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  box-sizing: border-box;
 }
 
 .ytp-button-layer svg {
@@ -479,7 +518,7 @@ export const SIDEBAR_STYLES = `
 
 .ytp-button-layer .layer-button-active-indicator {
   position: absolute;
-  bottom: 4px;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
@@ -490,8 +529,38 @@ export const SIDEBAR_STYLES = `
   transition: opacity 0.15s;
 }
 
-.ytp-button-layer.layer-sidebar-open .layer-button-active-indicator {
+.layer-toggle-btn.layer-toasts-on .layer-button-active-indicator {
   opacity: 1;
+}
+
+.layer-toggle-btn.layer-toasts-on {
+  opacity: 1;
+}
+
+.layer-toggle-btn:not(.layer-toasts-on) {
+  opacity: 0.5;
+}
+
+.layer-add-btn {
+  opacity: 0.9;
+}
+
+.layer-add-btn:not(.layer-add-disabled) {
+  opacity: 0.9;
+}
+
+.ytp-button-layer .layer-btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+  display: block;
+  margin: auto;
+}
+
+.layer-add-btn.layer-add-disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 `;
 

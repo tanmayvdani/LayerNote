@@ -11,6 +11,8 @@ interface LayerState {
   syncStatus: 'idle' | 'syncing' | 'queued' | 'error';
   lastError: string | null;
   toastDurationSeconds: number;
+  username: string;
+  toastsVisible: boolean;
 
   initializeForVideo: (videoId: string, sharedLayerId?: string | null) => Promise<void>;
   createLayer: (title: string) => Promise<void>;
@@ -18,6 +20,8 @@ interface LayerState {
   updateAnnotation: (annotationId: string, content: string, timestampSeconds: number) => void;
   deleteAnnotation: (annotationId: string) => Promise<void>;
   setToastDuration: (seconds: number) => void;
+  setUsername: (name: string) => Promise<void>;
+  toggleToastsVisible: () => void;
   reset: () => void;
   rebuildIndex: () => void;
 }
@@ -31,6 +35,8 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   syncStatus: 'idle',
   lastError: null,
   toastDurationSeconds: 5,
+  username: '',
+  toastsVisible: true,
 
   initializeForVideo: async (videoId, sharedLayerId = null) => {
     get().reset();
@@ -38,28 +44,44 @@ export const layerStore = createStore<LayerState>((set, get) => ({
 
     try {
       const ownerToken = await LocalStorageManager.getOwnerToken();
+      const storedUsername = await LocalStorageManager.getUsername();
+      set({ username: storedUsername });
 
       if (sharedLayerId) {
         set({ syncStatus: 'syncing' });
         const remotePayload = await LocalStorageManager.fetchRemoteLayer(sharedLayerId);
 
-        if (!remotePayload) {
-          throw new Error('Shared layer payload could not be retrieved from the cloud layer.');
+        if (remotePayload) {
+          const isViewer = remotePayload.layer.ownerToken !== ownerToken;
+
+          const annotationMap = new Map<string, Annotation>();
+          remotePayload.annotations.forEach(ann => annotationMap.set(ann.id, ann));
+
+          set({
+            activeLayer: remotePayload.layer,
+            annotations: annotationMap,
+            isViewerMode: isViewer,
+            syncStatus: 'idle'
+          });
+
+          await LocalStorageManager.saveLayerLocally(remotePayload.layer, remotePayload.annotations);
+        } else {
+          const localLayer = await LocalStorageManager.getLayer(sharedLayerId);
+          if (localLayer && localLayer.youtubeVideoId === videoId) {
+            const localAnnotations = await LocalStorageManager.getAnnotationsForLayer(localLayer.id);
+            const annotationMap = new Map<string, Annotation>();
+            localAnnotations.forEach(ann => annotationMap.set(ann.id, ann));
+
+            set({
+              activeLayer: localLayer,
+              annotations: annotationMap,
+              isViewerMode: localLayer.ownerToken !== ownerToken,
+              syncStatus: 'idle'
+            });
+          } else {
+            set({ syncStatus: 'error', lastError: 'Could not load shared layer.' });
+          }
         }
-
-        const isViewer = remotePayload.layer.ownerToken !== ownerToken;
-
-        const annotationMap = new Map<string, Annotation>();
-        remotePayload.annotations.forEach(ann => annotationMap.set(ann.id, ann));
-
-        set({
-          activeLayer: remotePayload.layer,
-          annotations: annotationMap,
-          isViewerMode: isViewer,
-          syncStatus: 'idle'
-        });
-
-        await LocalStorageManager.saveLayerLocally(remotePayload.layer, remotePayload.annotations);
       } else {
         const localLayer = await LocalStorageManager.findLayerByVideo(videoId);
         if (localLayer) {
@@ -87,10 +109,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
 
     const sanitizedTitle = title.trim().substring(0, 100) || `Notes for video ${videoId}`;
     const ownerToken = await LocalStorageManager.getOwnerToken();
+    const currentUsername = get().username;
 
     const newLayer: Layer = {
       id: crypto.randomUUID(),
       ownerToken,
+      ownerName: currentUsername,
       youtubeVideoId: videoId,
       title: sanitizedTitle,
       annotationIds: [],
@@ -123,6 +147,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
       layerId: activeLayer.id,
       timestampSeconds,
       content: sanitizedContent,
+      toastDurationSeconds: get().toastDurationSeconds,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -197,6 +222,29 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   setToastDuration: (seconds) => {
     const clamped = Math.min(30, Math.max(5, Math.round(seconds)));
     set({ toastDurationSeconds: clamped });
+  },
+
+  setUsername: async (name) => {
+    const sanitized = name.trim().substring(0, 50);
+    set({ username: sanitized });
+    await LocalStorageManager.setUsername(sanitized);
+
+    const { activeLayer } = get();
+    if (activeLayer) {
+      const updatedLayer = {
+        ...activeLayer,
+        ownerName: sanitized,
+        syncState: 'queued' as const,
+        updatedAt: new Date().toISOString()
+      };
+      set({ activeLayer: updatedLayer });
+      await LocalStorageManager.saveLayerLocally(updatedLayer, Array.from(get().annotations.values()));
+      LocalStorageManager.queueBackgroundSync(updatedLayer.id);
+    }
+  },
+
+  toggleToastsVisible: () => {
+    set({ toastsVisible: !get().toastsVisible });
   },
 
   reset: () => set({
