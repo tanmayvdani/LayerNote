@@ -1,0 +1,19 @@
+{
+  "name": "layer-youtube-annotations",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YouTube timestamped annotation overlay extension",
+  "scripts": {
+    "build": "tsc && node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0"
+  }
+}
