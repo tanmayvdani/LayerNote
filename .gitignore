@@ -3,3 +3,4 @@ dist/
 *.map
 .agents/
 skills-lock.json
+*.zip
