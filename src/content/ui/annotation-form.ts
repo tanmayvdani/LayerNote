@@ -31,11 +31,15 @@ export function renderCreateBar(video: HTMLVideoElement | null): HTMLElement {
   input.maxLength = MAX_CONTENT_LENGTH;
 
   input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submitAnnotation(tsBadge, input);
     }
   });
+
+  input.addEventListener('keyup', (e) => e.stopPropagation());
+  input.addEventListener('keypress', (e) => e.stopPropagation());
 
   bar.appendChild(tsBadge);
   bar.appendChild(input);

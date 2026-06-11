@@ -157,11 +157,11 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
   let cardCancelled = false;
 
   tsInput.addEventListener('keydown', (e) => {
+    e.stopPropagation();
     if (e.key === 'Enter') {
       e.preventDefault();
       textInput.focus();
     } else if (e.key === 'Escape') {
-      e.stopPropagation();
       cardCancelled = true;
       const state = layerStore.getState();
       const freshAnn = state.annotations.get(ann.id);
@@ -172,13 +172,15 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
       }
     }
   });
+  tsInput.addEventListener('keyup', (e) => e.stopPropagation());
+  tsInput.addEventListener('keypress', (e) => e.stopPropagation());
 
   textInput.addEventListener('keydown', (e) => {
+    e.stopPropagation();
     if (e.key === 'Enter') {
       e.preventDefault();
       save();
     } else if (e.key === 'Escape') {
-      e.stopPropagation();
       cardCancelled = true;
       const state = layerStore.getState();
       const freshAnn = state.annotations.get(ann.id);
@@ -189,6 +191,8 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
       }
     }
   });
+  textInput.addEventListener('keyup', (e) => e.stopPropagation());
+  textInput.addEventListener('keypress', (e) => e.stopPropagation());
 
   tsInput.addEventListener('blur', () => {
     setTimeout(() => {

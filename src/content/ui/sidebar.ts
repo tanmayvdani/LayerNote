@@ -584,6 +584,9 @@ function renderSearchBar(): HTMLElement {
       timeline.replaceWith(newTimeline);
     }
   });
+  input.addEventListener('keydown', (e) => e.stopPropagation());
+  input.addEventListener('keyup', (e) => e.stopPropagation());
+  input.addEventListener('keypress', (e) => e.stopPropagation());
 
   bar.appendChild(icon);
   bar.appendChild(input);
@@ -620,6 +623,9 @@ function renderSettings(): HTMLElement {
   usernameInput.addEventListener('input', () => {
     layerStore.getState().setUsername(usernameInput.value);
   });
+  usernameInput.addEventListener('keydown', (e) => e.stopPropagation());
+  usernameInput.addEventListener('keyup', (e) => e.stopPropagation());
+  usernameInput.addEventListener('keypress', (e) => e.stopPropagation());
 
   usernameRow.appendChild(usernameLabel);
   usernameRow.appendChild(usernameInput);
