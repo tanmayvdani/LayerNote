@@ -3,7 +3,7 @@ import { layerStore } from '../layer-state';
 import { formatTimestamp, parseTimestamp } from '../utils';
 import { VIDEO_SELECTOR, MAX_CONTENT_LENGTH } from '../constants';
 
-export function renderTimeline(searchQuery: string = ''): HTMLElement {
+export function renderTimeline(searchQuery: string = '', readOnly: boolean = false): HTMLElement {
   const container = document.createElement('div');
   container.className = 'layer-timeline';
 
@@ -25,8 +25,31 @@ export function renderTimeline(searchQuery: string = ''): HTMLElement {
     return container;
   }
 
+  const isReadOnly = readOnly || state.activeTab !== 'own';
+
   for (const ann of annotations) {
-    container.appendChild(createCard(ann, state.isViewerMode));
+    container.appendChild(createCard(ann, isReadOnly));
+  }
+
+  return container;
+}
+
+export function renderAnnotationList(annotations: Annotation[], readOnly: boolean = true): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'layer-timeline';
+
+  const sorted = [...annotations].sort((a, b) => a.timestampSeconds - b.timestampSeconds);
+
+  if (sorted.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'layer-timeline-empty';
+    empty.textContent = 'No notes yet';
+    container.appendChild(empty);
+    return container;
+  }
+
+  for (const ann of sorted) {
+    container.appendChild(createCard(ann, readOnly));
   }
 
   return container;
@@ -126,7 +149,7 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
       if (freshAnn) {
         card.innerHTML = '';
         card.className = 'layer-card';
-        rebuildCard(card, freshAnn, state.isViewerMode);
+        rebuildCard(card, freshAnn, state.activeTab !== 'own');
       }
     }
   };
@@ -145,7 +168,7 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
       if (freshAnn) {
         card.innerHTML = '';
         card.className = 'layer-card';
-        rebuildCard(card, freshAnn, state.isViewerMode);
+        rebuildCard(card, freshAnn, state.activeTab !== 'own');
       }
     }
   });
@@ -162,7 +185,7 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
       if (freshAnn) {
         card.innerHTML = '';
         card.className = 'layer-card';
-        rebuildCard(card, freshAnn, state.isViewerMode);
+        rebuildCard(card, freshAnn, state.activeTab !== 'own');
       }
     }
   });

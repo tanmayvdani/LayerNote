@@ -1,6 +1,6 @@
 import { layerStore } from '../layer-state';
 import { renderCreateBar } from './annotation-form';
-import { renderTimeline } from './annotation-list';
+import { renderTimeline, renderAnnotationList } from './annotation-list';
 import { injectSidebarStyles } from './styles';
 import { hideAllToasts, showToastContainer } from '../timestamp-engine';
 import { formatTimestamp, clipboardCopy } from '../utils';
@@ -111,17 +111,24 @@ function handlePlayerAddNote(): void {
 
   if (!state.activeLayer) {
     layerStore.getState().createLayer('');
+    setTimeout(() => focusNoteInput(), 100);
     return;
   }
 
-  if (state.isViewerMode) return;
+  if (state.activeTab !== 'own') {
+    layerStore.getState().switchToOwnLayer();
+    setTimeout(() => focusNoteInput(), 150);
+    return;
+  }
 
+  focusNoteInput();
+}
+
+function focusNoteInput(): void {
   const noteInput = document.getElementById('layer-note-input') as HTMLInputElement | null;
-  if (noteInput) {
+  if (noteInput && currentVideo) {
     const tsBadge = document.getElementById('layer-ts-badge');
-    if (currentVideo && tsBadge) {
-      tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
-    }
+    if (tsBadge) tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
     noteInput.focus();
   }
 }
@@ -133,17 +140,12 @@ function updateButtonState(): void {
 
   if (toggleBtn) {
     toggleBtn.classList.toggle('layer-toasts-on', state.toastsVisible);
-    if (state.toastsVisible) {
-      toggleBtn.title = 'Hide annotations overlay';
-    } else {
-      toggleBtn.title = 'Show annotations overlay';
-    }
+    toggleBtn.title = state.toastsVisible ? 'Hide annotations overlay' : 'Show annotations overlay';
   }
 
   if (addBtn) {
-    const canAdd = state.activeLayer && !state.isViewerMode;
-    addBtn.classList.toggle('layer-add-disabled', !canAdd);
-    addBtn.style.opacity = canAdd ? '0.9' : '0.4';
+    addBtn.classList.remove('layer-add-disabled');
+    addBtn.style.opacity = '0.9';
   }
 }
 
@@ -168,7 +170,7 @@ function buildPanel(): HTMLElement {
   const header = document.createElement('div');
   header.id = 'layer-panel-header';
   header.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('.layer-icon-btn')) return;
+    if ((e.target as HTMLElement).closest('.layer-icon-btn') || (e.target as HTMLElement).closest('.layer-tab-bar')) return;
     togglePanel();
   });
 
@@ -178,19 +180,53 @@ function buildPanel(): HTMLElement {
   const chevron = document.createElement('span');
   chevron.id = 'layer-panel-chevron';
   chevron.textContent = '\u25BC';
-
-  const title = document.createElement('span');
-  title.id = 'layer-panel-title';
-  const displayName = state.username || 'Notes';
-  title.textContent = displayName;
   headerLeft.appendChild(chevron);
-  headerLeft.appendChild(title);
 
-  if (state.isViewerMode) {
-    const badge = document.createElement('span');
-    badge.className = 'layer-viewer-badge';
-    badge.textContent = 'VIEWER';
-    headerLeft.appendChild(badge);
+  if (state.activeLayer || state.sharedLayers.size > 0) {
+    const tabBar = document.createElement('div');
+    tabBar.className = 'layer-tab-bar';
+
+    const ownTab = document.createElement('button');
+    ownTab.className = 'layer-tab' + (state.activeTab === 'own' ? ' layer-tab-active' : '');
+    ownTab.textContent = 'My Notes';
+    ownTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.activeTab !== 'own') {
+        if (state.activeLayer && state.videoId) {
+          layerStore.getState().switchToOwnLayer();
+        }
+      }
+    });
+
+    const sharedTab = document.createElement('button');
+    sharedTab.className = 'layer-tab' + (state.activeTab === 'shared' ? ' layer-tab-active' : '');
+    const sharedCount = state.sharedLayers.size;
+    sharedTab.textContent = 'Shared' + (sharedCount > 0 ? ` (${sharedCount})` : '');
+    sharedTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.activeTab !== 'shared') {
+        layerStore.getState().switchToSharedLayer();
+      }
+    });
+
+    const browseTab = document.createElement('button');
+    browseTab.className = 'layer-tab' + (state.activeTab === 'browse' ? ' layer-tab-active' : '');
+    browseTab.textContent = 'Browse';
+    browseTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      layerStore.getState().setActiveTab('browse');
+      layerStore.getState().loadPublicLayers();
+    });
+
+    tabBar.appendChild(ownTab);
+    tabBar.appendChild(sharedTab);
+    tabBar.appendChild(browseTab);
+    headerLeft.appendChild(tabBar);
+  } else {
+    const title = document.createElement('span');
+    title.id = 'layer-panel-title';
+    title.textContent = 'Notes';
+    headerLeft.appendChild(title);
   }
 
   header.appendChild(headerLeft);
@@ -209,7 +245,7 @@ function buildPanel(): HTMLElement {
       try {
         await clipboardCopy(shareUrl);
       } catch {
-        /* Clipboard API unavailable in this context */
+        /* Clipboard API unavailable */
       }
       shareBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3ea6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
       setTimeout(() => {
@@ -236,22 +272,16 @@ function buildPanel(): HTMLElement {
   const body = document.createElement('div');
   body.id = 'layer-panel-body';
 
-  if (state.activeLayer) {
-    if (!state.isViewerMode) {
-      body.appendChild(renderCreateBar(currentVideo));
-    }
-
-    const annCount = state.annotations.size;
-    if (annCount > 20) {
-      body.appendChild(renderSearchBar());
-    }
-
-    body.appendChild(renderTimeline(searchQuery));
+  if (state.activeTab === 'own') {
+    body.appendChild(renderOwnTab(state));
+  } else if (state.activeTab === 'shared') {
+    body.appendChild(renderSharedTab(state));
+  } else if (state.activeTab === 'browse') {
+    body.appendChild(renderBrowseTab(state));
   } else if (state.videoId) {
     const cta = document.createElement('div');
     cta.className = 'layer-create-cta';
     cta.innerHTML = '<p>No annotations on this video yet</p>';
-
     const createBtn = document.createElement('button');
     createBtn.className = 'layer-btn-primary';
     createBtn.textContent = 'Start Annotating';
@@ -276,6 +306,222 @@ function buildPanel(): HTMLElement {
   return panel;
 }
 
+function renderOwnTab(state: ReturnType<typeof layerStore.getState>): HTMLElement {
+  const container = document.createElement('div');
+
+  if (!state.activeLayer || state.activeTab !== 'own') {
+    const cta = document.createElement('div');
+    cta.className = 'layer-create-cta';
+
+    if (!state.activeLayer) {
+      cta.innerHTML = '<p>Create your own notes on this video</p>';
+      const createBtn = document.createElement('button');
+      createBtn.className = 'layer-btn-primary';
+      createBtn.textContent = 'Start Annotating';
+      createBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        layerStore.getState().createLayer('');
+      });
+      cta.appendChild(createBtn);
+    } else {
+      cta.innerHTML = '<p>Switch to your notes to edit</p>';
+      const switchBtn = document.createElement('button');
+      switchBtn.className = 'layer-btn-primary';
+      switchBtn.textContent = 'Switch to My Notes';
+      switchBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        layerStore.getState().switchToOwnLayer();
+      });
+      cta.appendChild(switchBtn);
+    }
+    container.appendChild(cta);
+    return container;
+  }
+
+  const publicToggle = document.createElement('div');
+  publicToggle.className = 'layer-own-header';
+
+  const ownerLabel = document.createElement('span');
+  ownerLabel.className = 'layer-own-owner-label';
+  ownerLabel.textContent = state.username || 'My Notes';
+  publicToggle.appendChild(ownerLabel);
+
+  const toggleWrap = document.createElement('button');
+  toggleWrap.className = 'layer-public-toggle' + (state.activeLayer.isPublic ? ' layer-public-active' : '');
+  toggleWrap.title = state.activeLayer.isPublic ? 'Notes are public' : 'Notes are private';
+  toggleWrap.innerHTML = state.activeLayer.isPublic
+    ? '<span class="layer-public-dot"></span>Public'
+    : 'Private';
+  toggleWrap.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await layerStore.getState().toggleLayerPublic();
+  });
+  publicToggle.appendChild(toggleWrap);
+  container.appendChild(publicToggle);
+
+  container.appendChild(renderCreateBar(currentVideo));
+
+  const annCount = state.annotations.size;
+  if (annCount > 20) {
+    container.appendChild(renderSearchBar());
+  }
+
+  container.appendChild(renderTimeline(searchQuery, false));
+  return container;
+}
+
+function renderSharedTab(state: ReturnType<typeof layerStore.getState>): HTMLElement {
+  const container = document.createElement('div');
+
+  if (state.sharedLayers.size === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'layer-timeline-empty';
+    empty.innerHTML = 'No shared notes yet.<br><span style="color:#717171;font-size:12px;">Open a shared link or add notes from Browse.</span>';
+    container.appendChild(empty);
+    return container;
+  }
+
+  for (const [, entry] of state.sharedLayers) {
+    const segment = document.createElement('div');
+    segment.className = 'layer-shared-segment';
+
+    const segmentHeader = document.createElement('div');
+    segmentHeader.className = 'layer-shared-segment-header';
+
+    const ownerLabel = document.createElement('span');
+    ownerLabel.className = 'layer-shared-segment-owner';
+    ownerLabel.textContent = entry.layer.ownerName || 'Shared';
+    segmentHeader.appendChild(ownerLabel);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'layer-shared-segment-remove';
+    removeBtn.title = 'Remove from shared';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      layerStore.getState().removeSharedLayer(entry.layer.id);
+    });
+    segmentHeader.appendChild(removeBtn);
+
+    segment.appendChild(segmentHeader);
+    segment.appendChild(renderAnnotationList(entry.annotations, true));
+    container.appendChild(segment);
+  }
+
+  return container;
+}
+
+function renderBrowseTab(state: ReturnType<typeof layerStore.getState>): HTMLElement {
+  const container = document.createElement('div');
+
+  if (state.publicLayers.length === 0 && state.syncStatus === 'idle') {
+    const empty = document.createElement('div');
+    empty.className = 'layer-timeline-empty';
+    empty.textContent = 'No public notes on this video yet';
+    container.appendChild(empty);
+    return container;
+  }
+
+  if (state.syncStatus === 'syncing' && state.publicLayers.length === 0) {
+    const loading = document.createElement('div');
+    loading.className = 'layer-timeline-empty';
+    loading.textContent = 'Loading public notes\u2026';
+    container.appendChild(loading);
+    return container;
+  }
+
+  for (const summary of state.publicLayers) {
+    const card = document.createElement('div');
+    card.className = 'layer-browse-card';
+
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'layer-browse-card-header';
+
+    const ownerInfo = document.createElement('div');
+    ownerInfo.className = 'layer-browse-owner-info';
+
+    const ownerName = document.createElement('span');
+    ownerName.className = 'layer-browse-owner-name';
+    ownerName.textContent = summary.layer.ownerName || 'Anonymous';
+    ownerInfo.appendChild(ownerName);
+
+    const noteCount = document.createElement('span');
+    noteCount.className = 'layer-browse-note-count';
+    noteCount.textContent = `${summary.annotationCount} note${summary.annotationCount !== 1 ? 's' : ''}`;
+    ownerInfo.appendChild(noteCount);
+
+    cardHeader.appendChild(ownerInfo);
+
+    const reactions = document.createElement('div');
+    reactions.className = 'layer-browse-reactions';
+
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'layer-reaction-btn' + (summary.userReaction === 'like' ? ' layer-reaction-active' : '');
+    likeBtn.innerHTML = `<span class="layer-reaction-icon">\uD83D\uDC4D</span><span class="layer-reaction-count">${summary.layer.likeCount}</span>`;
+    likeBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await layerStore.getState().likeLayer(summary.layer.id);
+    });
+    reactions.appendChild(likeBtn);
+
+    const dislikeBtn = document.createElement('button');
+    dislikeBtn.className = 'layer-reaction-btn' + (summary.userReaction === 'dislike' ? ' layer-reaction-active' : '');
+    dislikeBtn.innerHTML = `<span class="layer-reaction-icon">\uD83D\uDC4E</span><span class="layer-reaction-count">${summary.layer.dislikeCount}</span>`;
+    dislikeBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await layerStore.getState().dislikeLayer(summary.layer.id);
+    });
+    reactions.appendChild(dislikeBtn);
+
+    cardHeader.appendChild(reactions);
+    card.appendChild(cardHeader);
+
+    if (state.expandedPublicLayerId === summary.layer.id) {
+      const notesContainer = document.createElement('div');
+      notesContainer.className = 'layer-browse-expanded';
+      notesContainer.appendChild(renderAnnotationList(state.expandedPublicAnnotations, true));
+
+      const collapseBtn = document.createElement('button');
+      collapseBtn.className = 'layer-btn-primary layer-browse-collapse-btn';
+      collapseBtn.textContent = 'Collapse';
+      collapseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        layerStore.getState().collapsePublicLayer();
+      });
+      notesContainer.appendChild(collapseBtn);
+      card.appendChild(notesContainer);
+    } else {
+      const actions = document.createElement('div');
+      actions.className = 'layer-browse-card-actions';
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'layer-btn-primary layer-browse-add-btn';
+      addBtn.textContent = 'Add to Shared';
+      addBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await layerStore.getState().addSharedLayer(summary.layer.id);
+        layerStore.getState().setActiveTab('shared');
+      });
+      actions.appendChild(addBtn);
+
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'layer-btn-sm';
+      viewBtn.textContent = 'Preview';
+      viewBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await layerStore.getState().expandPublicLayer(summary.layer.id);
+      });
+      actions.appendChild(viewBtn);
+
+      card.appendChild(actions);
+    }
+
+    container.appendChild(card);
+  }
+
+  return container;
+}
+
 function renderSearchBar(): HTMLElement {
   const bar = document.createElement('div');
   bar.className = 'layer-search-bar';
@@ -293,7 +539,7 @@ function renderSearchBar(): HTMLElement {
     searchQuery = input.value;
     const timeline = document.querySelector('.layer-timeline');
     if (timeline) {
-      const newTimeline = renderTimeline(searchQuery);
+      const newTimeline = renderTimeline(searchQuery, layerStore.getState().activeTab !== 'own');
       timeline.replaceWith(newTimeline);
     }
   });
@@ -367,6 +613,26 @@ function renderSettings(): HTMLElement {
   durationRow.appendChild(durationSlider);
   durationRow.appendChild(durationValue);
   settings.appendChild(durationRow);
+
+  const defaultPublicRow = document.createElement('div');
+  defaultPublicRow.className = 'layer-settings-row';
+
+  const defaultPublicLabel = document.createElement('span');
+  defaultPublicLabel.className = 'layer-settings-label';
+  defaultPublicLabel.textContent = 'New notes default';
+
+  const defaultPublicToggle = document.createElement('button');
+  defaultPublicToggle.className = 'layer-public-toggle' + (state.defaultIsPublic ? ' layer-public-active' : '');
+  defaultPublicToggle.innerHTML = state.defaultIsPublic
+    ? '<span class="layer-public-dot"></span>Public'
+    : 'Private';
+  defaultPublicToggle.addEventListener('click', async () => {
+    await layerStore.getState().setDefaultIsPublic(!state.defaultIsPublic);
+  });
+
+  defaultPublicRow.appendChild(defaultPublicLabel);
+  defaultPublicRow.appendChild(defaultPublicToggle);
+  settings.appendChild(defaultPublicRow);
 
   if (state.activeLayer) {
     const shareRow = document.createElement('div');

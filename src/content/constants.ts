@@ -10,3 +10,4 @@ export const MAX_VISIBLE_TOASTS = 3;
 export const TIMESTAMP_DELTA_SECONDS = 0.4;
 export const MAX_IMPORT_SIZE_BYTES = 2 * 1024 * 1024;
 export const SYNC_ALARM_PERIOD_MINUTES = 5;
+export const DEFAULT_IS_PUBLIC = false;

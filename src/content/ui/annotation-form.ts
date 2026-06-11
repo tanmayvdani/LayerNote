@@ -7,7 +7,7 @@ let currentVideo: HTMLVideoElement | null = null;
 export function renderCreateBar(video: HTMLVideoElement | null): HTMLElement {
   currentVideo = video;
   const state = layerStore.getState();
-  if (state.isViewerMode) return document.createElement('div');
+  if (state.activeTab !== 'own' || !state.activeLayer) return document.createElement('div');
 
   const bar = document.createElement('div');
   bar.className = 'layer-create-bar';

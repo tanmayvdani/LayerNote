@@ -8,6 +8,9 @@ export interface Layer {
   title: string;
   annotationIds: string[];
   syncState: SyncState;
+  isPublic: boolean;
+  likeCount: number;
+  dislikeCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +30,27 @@ export interface RemoteLayerPayload {
   annotations: Annotation[];
 }
 
+export interface LayerReaction {
+  id: string;
+  layerId: string;
+  ownerToken: string;
+  reactionType: 'like' | 'dislike';
+  createdAt: string;
+}
+
+export interface PublicLayerSummary {
+  layer: Layer;
+  annotationCount: number;
+  userReaction: 'like' | 'dislike' | null;
+}
+
+export interface SharedLayerEntry {
+  layer: Layer;
+  annotations: Annotation[];
+}
+
+export type ActiveTab = 'own' | 'shared' | 'browse';
+
 export interface SupabaseAnnotationRow {
   id: string;
   layer_id: string;
@@ -38,7 +62,7 @@ export interface SupabaseAnnotationRow {
 }
 
 export interface ExportData {
-  version: 3;
+  version: 4;
   layer: Layer;
   annotations: Annotation[];
 }

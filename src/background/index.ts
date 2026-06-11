@@ -35,6 +35,9 @@ async function processOutboundSyncQueue(): Promise<void> {
           owner_name: layer.ownerName,
           video_id: layer.youtubeVideoId,
           title: layer.title,
+          is_public: layer.isPublic,
+          like_count: layer.likeCount,
+          dislike_count: layer.dislikeCount,
           updated_at: new Date().toISOString()
         });
 
