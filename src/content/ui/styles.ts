@@ -470,6 +470,18 @@ export const SIDEBAR_STYLES = `
   background: #65b8ff;
 }
 
+/* ── Viewer badge ── */
+
+.layer-viewer-badge {
+  background: #f9a825;
+  color: #0f0f0f;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
+
 /* ── Player buttons ── */
 
 .ytp-button-layer-wrap {
