@@ -1,4 +1,6 @@
 import { layerStore } from '../layer-state';
+import { formatTimestamp, parseTimestamp } from '../utils';
+import { MAX_CONTENT_LENGTH } from '../constants';
 
 let currentVideo: HTMLVideoElement | null = null;
 
@@ -26,7 +28,7 @@ export function renderCreateBar(video: HTMLVideoElement | null): HTMLElement {
   input.className = 'layer-note-input';
   input.type = 'text';
   input.placeholder = 'Add a note\u2026';
-  input.maxLength = 200;
+  input.maxLength = MAX_CONTENT_LENGTH;
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -59,22 +61,4 @@ function submitAnnotation(tsBadge: HTMLElement, input: HTMLInputElement): void {
   if (currentVideo) {
     tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
   }
-}
-
-function formatTimestamp(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function parseTimestamp(raw: string): number {
-  const parts = raw.split(':').map(Number);
-  if (parts.some(isNaN)) return NaN;
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return parts[0];
 }

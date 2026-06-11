@@ -4,7 +4,7 @@
   "private": true,
   "description": "YouTube timestamped annotation overlay extension",
   "scripts": {
-    "build": "tsc && node build.mjs",
+    "build": "node build.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },

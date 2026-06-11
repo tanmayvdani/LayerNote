@@ -2,7 +2,9 @@ import { layerStore } from '../layer-state';
 import { renderCreateBar } from './annotation-form';
 import { renderTimeline } from './annotation-list';
 import { injectSidebarStyles } from './styles';
-import { OverlayNotificationSystem } from '../timestamp-engine';
+import { hideAllToasts, showToastContainer } from '../timestamp-engine';
+import { formatTimestamp, clipboardCopy } from '../utils';
+import { VIDEO_SELECTOR, MAX_CONTENT_LENGTH, MAX_USERNAME_LENGTH, TOAST_DURATION_MIN, TOAST_DURATION_MAX } from '../constants';
 
 let panelExpanded = true;
 let settingsOpen = false;
@@ -36,9 +38,9 @@ export function mountSidebarUI(video: HTMLVideoElement | null): void {
     refreshPanel();
     const state = layerStore.getState();
     if (!state.toastsVisible) {
-      OverlayNotificationSystem.hideAll();
+      hideAllToasts();
     } else {
-      OverlayNotificationSystem.showContainer();
+      showToastContainer();
     }
     updateButtonState();
   });
@@ -118,20 +120,10 @@ function handlePlayerAddNote(): void {
   if (noteInput) {
     const tsBadge = document.getElementById('layer-ts-badge');
     if (currentVideo && tsBadge) {
-      tsBadge.textContent = formatPlayerTimestamp(currentVideo.currentTime);
+      tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
     }
     noteInput.focus();
   }
-}
-
-function formatPlayerTimestamp(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 function updateButtonState(): void {
@@ -176,8 +168,7 @@ function buildPanel(): HTMLElement {
   const header = document.createElement('div');
   header.id = 'layer-panel-header';
   header.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('.layer-icon-btn')) return;
+    if ((e.target as HTMLElement).closest('.layer-icon-btn')) return;
     togglePanel();
   });
 
@@ -225,14 +216,9 @@ function buildPanel(): HTMLElement {
       e.stopPropagation();
       const shareUrl = `https://www.youtube.com/watch?v=${state.activeLayer!.youtubeVideoId}&layer=${state.activeLayer!.id}`;
       try {
-        await navigator.clipboard.writeText(shareUrl);
+        await clipboardCopy(shareUrl);
       } catch {
-        const ta = document.createElement('textarea');
-        ta.value = shareUrl;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
+        /* Clipboard API unavailable in this context */
       }
       shareBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3ea6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
       setTimeout(() => {
@@ -265,7 +251,7 @@ function buildPanel(): HTMLElement {
     } else {
       const viewerNote = document.createElement('div');
       viewerNote.style.cssText = 'color:#717171;font-size:11px;text-align:center;padding:8px 12px;border-bottom:1px solid #1e1e1e;';
-      viewerNote.textContent = 'Viewing — annotations are read-only';
+      viewerNote.textContent = 'Viewing \u2014 annotations are read-only';
       body.appendChild(viewerNote);
     }
 
@@ -353,7 +339,7 @@ function renderSettings(): HTMLElement {
   usernameInput.className = 'layer-settings-input';
   usernameInput.type = 'text';
   usernameInput.placeholder = 'Your name';
-  usernameInput.maxLength = 50;
+  usernameInput.maxLength = MAX_USERNAME_LENGTH;
   usernameInput.value = state.username;
   usernameInput.addEventListener('change', () => {
     layerStore.getState().setUsername(usernameInput.value);
@@ -375,8 +361,8 @@ function renderSettings(): HTMLElement {
 
   const durationSlider = document.createElement('input');
   durationSlider.type = 'range';
-  durationSlider.min = '5';
-  durationSlider.max = '30';
+  durationSlider.min = String(TOAST_DURATION_MIN);
+  durationSlider.max = String(TOAST_DURATION_MAX);
   durationSlider.step = '1';
   durationSlider.value = String(state.toastDurationSeconds);
   durationSlider.className = 'layer-settings-slider';
@@ -418,14 +404,11 @@ function renderSettings(): HTMLElement {
     copyBtn.textContent = 'Copy';
     copyBtn.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(shareInput.value);
+        await clipboardCopy(shareInput.value);
         copyBtn.textContent = 'Copied';
         setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
       } catch {
-        shareInput.select();
-        document.execCommand('copy');
-        copyBtn.textContent = 'Copied';
-        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+        /* Clipboard API unavailable */
       }
     });
 

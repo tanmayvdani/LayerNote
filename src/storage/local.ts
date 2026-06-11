@@ -1,5 +1,6 @@
-import { Layer, Annotation, RemoteLayerPayload, ExportV1 } from './types';
+import { Layer, Annotation, RemoteLayerPayload, ExportData, SupabaseAnnotationRow } from './types';
 import { supabase } from './supabase';
+import { MAX_USERNAME_LENGTH, MAX_IMPORT_SIZE_BYTES } from '../content/constants';
 
 const CURRENT_STORAGE_VERSION = 3;
 const DEFAULT_TOAST_DURATION = 5;
@@ -45,7 +46,7 @@ export const LocalStorageManager = {
   },
 
   async setUsername(name: string): Promise<void> {
-    const sanitized = name.trim().substring(0, 50);
+    const sanitized = name.trim().substring(0, MAX_USERNAME_LENGTH);
     await chrome.storage.local.set({ [keyForUsername()]: sanitized });
   },
 
@@ -73,10 +74,10 @@ export const LocalStorageManager = {
   },
 
   async saveLayerLocally(layer: Layer, annotations: Annotation[]): Promise<void> {
-    const writes: Record<string, any> = {};
+    const writes: Record<string, Layer | Annotation> = {};
 
     writes[keyForLayer(layer.id)] = layer;
-    writes[keyForVideoIndex(layer.youtubeVideoId)] = layer.id;
+    writes[keyForVideoIndex(layer.youtubeVideoId)] = layer;
 
     annotations.forEach(ann => {
       writes[keyForAnnotation(layer.id, ann.id)] = ann;
@@ -108,17 +109,14 @@ export const LocalStorageManager = {
   },
 
   async fetchRemoteLayer(layerIdOrSlug: string): Promise<RemoteLayerPayload | null> {
-    console.log('[LocalStorageManager] fetchRemoteLayer called with:', layerIdOrSlug);
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(layerIdOrSlug);
-      
+
       let query = supabase.from('layers').select('*');
-      
+
       if (isUuid) {
-        console.log('[LocalStorageManager] Detected UUID format');
         query = query.eq('id', layerIdOrSlug);
       } else {
-        console.log('[LocalStorageManager] Detected Slug format');
         query = query.eq('slug', layerIdOrSlug);
       }
 
@@ -133,7 +131,6 @@ export const LocalStorageManager = {
         return null;
       }
 
-      console.log('[LocalStorageManager] Layer data found:', layerData.id);
       const layerId = layerData.id;
 
       const { data: annData, error: annError } = await supabase
@@ -146,7 +143,7 @@ export const LocalStorageManager = {
         return null;
       }
 
-      console.log('[LocalStorageManager] Annotations found:', annData?.length || 0);
+      const typedAnnData: SupabaseAnnotationRow[] = (annData ?? []) as SupabaseAnnotationRow[];
 
       const layer: Layer = {
         id: layerData.id,
@@ -154,13 +151,13 @@ export const LocalStorageManager = {
         ownerName: layerData.owner_name || '',
         youtubeVideoId: layerData.video_id,
         title: layerData.title,
-        annotationIds: annData.map((a: any) => a.id),
+        annotationIds: typedAnnData.map(a => a.id),
         syncState: 'synced',
         createdAt: layerData.created_at,
         updatedAt: layerData.updated_at
       };
 
-      const annotations: Annotation[] = annData.map((a: any) => ({
+      const annotations: Annotation[] = typedAnnData.map(a => ({
         id: a.id,
         layerId: a.layer_id,
         timestampSeconds: a.timestamp_seconds,
@@ -171,7 +168,8 @@ export const LocalStorageManager = {
       }));
 
       return { layer, annotations };
-    } catch {
+    } catch (err) {
+      console.error('[LocalStorageManager] fetchRemoteLayer failed:', err);
       return null;
     }
   },
@@ -180,7 +178,7 @@ export const LocalStorageManager = {
     try {
       chrome.runtime.sendMessage({ type: 'TRIGGER_SYNC' });
     } catch {
-      // Extension context may be invalidated
+      /* Extension context may be invalidated — intentional no-op */
     }
   },
 
@@ -204,19 +202,19 @@ export const LocalStorageManager = {
     await chrome.storage.local.set(migratoryState);
   },
 
-  migrateV2ToV3(oldState: Record<string, any>): Record<string, any> {
+  migrateV2ToV3(oldState: Record<string, unknown>): Record<string, unknown> {
     const updatedState = { ...oldState };
     const keys = Object.keys(oldState);
 
     for (const key of keys) {
       if (key.startsWith('layer:')) {
-        const layer = oldState[key];
+        const layer = oldState[key] as Record<string, unknown> | undefined;
         if (layer && !('ownerName' in layer)) {
           updatedState[key] = { ...layer, ownerName: '' };
         }
       }
       if (key.startsWith('annotation:')) {
-        const ann = oldState[key];
+        const ann = oldState[key] as Record<string, unknown> | undefined;
         if (ann && !('toastDurationSeconds' in ann)) {
           updatedState[key] = { ...ann, toastDurationSeconds: DEFAULT_TOAST_DURATION };
         }
@@ -226,24 +224,27 @@ export const LocalStorageManager = {
     return updatedState;
   },
 
-  migrateV1ToV2(oldState: Record<string, any>): Record<string, any> {
+  migrateV1ToV2(oldState: Record<string, unknown>): Record<string, unknown> {
     const updatedState = { ...oldState };
     const keys = Object.keys(oldState);
 
     keys.forEach(key => {
       if (key.startsWith('annotations:')) {
         const layerId = key.split(':')[1];
-        const rawArray = oldState[key] as any[];
+        const rawArray = oldState[key] as unknown[];
 
         delete updatedState[key];
 
         const indexKey = `layer:${layerId}`;
-        if (updatedState[indexKey]) {
-          updatedState[indexKey].annotationIds = rawArray.map(a => a.id);
+        const existing = updatedState[indexKey] as Record<string, unknown> | undefined;
+        if (existing) {
+          updatedState[indexKey] = { ...existing, annotationIds: rawArray.map(a => ((a as Record<string, unknown>) as { id: string }).id) };
         }
 
-        rawArray.forEach(annotation => {
-          updatedState[`annotation:${layerId}:${annotation.id}`] = annotation;
+        rawArray.forEach((annotation: unknown) => {
+          const ann = annotation as Record<string, unknown>;
+          const annId = (ann as { id: string }).id;
+          updatedState[`annotation:${layerId}:${annId}`] = ann;
         });
       }
     });
@@ -251,16 +252,16 @@ export const LocalStorageManager = {
     return updatedState;
   },
 
-  async exportLayer(layerId: string): Promise<ExportV1 | null> {
+  async exportLayer(layerId: string): Promise<ExportData | null> {
     const layer = await this.getLayer(layerId);
     if (!layer) return null;
     const annotations = await this.getAnnotationsForLayer(layerId);
     return { version: 3, layer, annotations };
   },
 
-  async importLayer(payload: ExportV1): Promise<void> {
+  async importLayer(payload: ExportData): Promise<void> {
     const totalSize = JSON.stringify(payload).length;
-    if (totalSize > 2 * 1024 * 1024) {
+    if (totalSize > MAX_IMPORT_SIZE_BYTES) {
       throw new Error('Imported file exceeds 2 MB safety boundary.');
     }
 

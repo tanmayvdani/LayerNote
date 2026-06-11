@@ -1,5 +1,7 @@
 import { Annotation } from '../storage/types';
 import { layerStore } from './layer-state';
+import { formatTimestamp } from './utils';
+import { MAX_VISIBLE_TOASTS, TIMESTAMP_DELTA_SECONDS } from './constants';
 
 class HighPrecisionSyncEngine {
   private videoElement: HTMLVideoElement | null = null;
@@ -67,7 +69,7 @@ class HighPrecisionSyncEngine {
       if (matchSet) {
         for (const note of matchSet) {
           const delta = Math.abs(currentTime - note.timestampSeconds);
-          if (delta <= 0.4 && !this.shownInThisPlayback.has(note.id)) {
+          if (delta <= TIMESTAMP_DELTA_SECONDS && !this.shownInThisPlayback.has(note.id)) {
             detectedNotes.push(note);
           }
         }
@@ -78,7 +80,7 @@ class HighPrecisionSyncEngine {
       for (const note of detectedNotes) {
         this.shownInThisPlayback.add(note.id);
       }
-      OverlayNotificationSystem.enqueue(detectedNotes);
+      enqueueToast(detectedNotes);
     }
 
     this.lastExecutedBucket = currentBucket;
@@ -88,151 +90,135 @@ class HighPrecisionSyncEngine {
 
 export const SyncEngineInstance = new HighPrecisionSyncEngine();
 
-class OverlayNotificationSystem {
-  private static container: HTMLElement | null = null;
-  private static activeToasts: Map<string, HTMLElement> = new Map();
-  private static readonly MAX_VISIBLE = 3;
+let toastContainer: HTMLElement | null = null;
+const activeToasts = new Map<string, HTMLElement>();
 
-  public static enqueue(annotations: Annotation[]): void {
-    if (!layerStore.getState().toastsVisible) return;
+function ensureContainer(): void {
+  if (toastContainer && document.contains(toastContainer)) return;
 
-    this.ensureContainer();
-
-    for (const ann of annotations) {
-      if (this.activeToasts.has(ann.id)) continue;
-      if (this.activeToasts.size >= this.MAX_VISIBLE) break;
-
-      this.renderToast(ann);
-    }
+  const existing = document.getElementById('layer-annotation-overlay');
+  if (existing) {
+    toastContainer = existing;
+    return;
   }
 
-  public static dismiss(annotationId: string): void {
-    const el = this.activeToasts.get(annotationId);
-    if (el) {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(10px)';
-      el.style.transition = 'opacity 0.2s, transform 0.2s';
-      setTimeout(() => {
-        el.remove();
-        this.activeToasts.delete(annotationId);
-      }, 200);
-    }
+  const moviePlayer = document.querySelector<HTMLDivElement>('#movie_player');
+  if (moviePlayer) {
+    mountInPlayer(moviePlayer);
+    return;
   }
 
-  public static hideAll(): void {
-    for (const [id, el] of this.activeToasts) {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(10px)';
-      el.style.transition = 'opacity 0.2s, transform 0.2s';
-    }
-    setTimeout(() => {
-      for (const [, el] of this.activeToasts) {
-        el.remove();
-      }
-      this.activeToasts.clear();
-      if (this.container) {
-        this.container.style.display = 'none';
-      }
-    }, 200);
-  }
+  toastContainer = document.createElement('div');
+  toastContainer.id = 'layer-annotation-overlay';
+  toastContainer.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999!important;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:600px;width:calc(100% - 40px);';
+  document.body.appendChild(toastContainer);
 
-  public static showContainer(): void {
-    this.ensureContainer();
-    if (this.container) {
-      this.container.style.display = '';
-    }
-  }
+  observeForPlayer();
+}
 
-  private static ensureContainer(): void {
-    if (this.container && document.contains(this.container)) return;
+function mountInPlayer(playerContainer: HTMLDivElement): void {
+  toastContainer = document.createElement('div');
+  toastContainer.id = 'layer-annotation-overlay';
+  toastContainer.style.cssText = 'position:absolute;bottom:52px;left:12px;z-index:9999!important;display:flex;flex-direction:column-reverse;gap:6px;pointer-events:none;max-width:min(420px, calc(100% - 24px));';
+  playerContainer.appendChild(toastContainer);
+}
 
-    const existing = document.getElementById('layer-annotation-overlay');
-    if (existing) {
-      this.container = existing;
-      return;
-    }
-
+function observeForPlayer(): void {
+  const observer = new MutationObserver(() => {
     const moviePlayer = document.querySelector<HTMLDivElement>('#movie_player');
-    if (moviePlayer) {
-      this.mountInPlayer(moviePlayer);
-      return;
+    if (moviePlayer && toastContainer && toastContainer.parentElement !== moviePlayer) {
+      toastContainer.remove();
+      mountInPlayer(moviePlayer);
+      observer.disconnect();
     }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
 
-    this.container = document.createElement('div');
-    this.container.id = 'layer-annotation-overlay';
-    this.container.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999!important;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:600px;width:calc(100% - 40px);';
-    document.body.appendChild(this.container);
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-    this.observeForPlayer();
-  }
+function linkifyContent(text: string): string {
+  const urlPattern = /(https?:\/\/[^\s<>"')\]]+)/g;
+  const escaped = escapeHtml(text);
+  return escaped.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3ea6ff;text-decoration:underline;pointer-events:auto;">$1</a>');
+}
 
-  private static mountInPlayer(playerContainer: HTMLDivElement): void {
-    this.container = document.createElement('div');
-    this.container.id = 'layer-annotation-overlay';
-    this.container.style.cssText = 'position:absolute;bottom:52px;left:12px;z-index:9999!important;display:flex;flex-direction:column-reverse;gap:6px;pointer-events:none;max-width:min(420px, calc(100% - 24px));';
-    playerContainer.appendChild(this.container);
-  }
+function renderToast(ann: Annotation): void {
+  if (!toastContainer) return;
 
-  private static observeForPlayer(): void {
-    const observer = new MutationObserver(() => {
-      const moviePlayer = document.querySelector<HTMLDivElement>('#movie_player');
-      if (moviePlayer && this.container && this.container.parentElement !== moviePlayer) {
-        this.container.remove();
-        this.mountInPlayer(moviePlayer);
-        observer.disconnect();
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
+  const duration = ann.toastDurationSeconds * 1000;
 
-  private static renderToast(ann: Annotation): void {
-    if (!this.container) return;
+  const toast = document.createElement('div');
+  toast.id = `layer-toast-${ann.id}`;
+  toast.style.cssText = 'position:relative;background:rgba(0,0,0,0.9);color:#fff;padding:10px 14px;border-radius:8px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.4;pointer-events:auto;user-select:text;box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:layer-toast-appear 0.25s ease-out;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);transition:opacity 0.2s,transform 0.2s;z-index:9999!important;width:fit-content;max-width:100%;';
 
-    const duration = ann.toastDurationSeconds * 1000;
+  const timeStr = formatTimestamp(ann.timestampSeconds);
+  const contentHtml = linkifyContent(ann.content);
+  toast.innerHTML = `<div style="font-size:11px;color:#3ea6ff;margin-bottom:3px;font-weight:500;">${timeStr}</div><div>${contentHtml}</div>`;
 
-    const toast = document.createElement('div');
-    toast.id = `layer-toast-${ann.id}`;
-    toast.style.cssText = 'position:relative;background:rgba(0,0,0,0.9);color:#fff;padding:10px 14px;border-radius:8px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;line-height:1.4;pointer-events:auto;user-select:text;box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:layer-toast-appear 0.25s ease-out;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);transition:opacity 0.2s,transform 0.2s;z-index:9999!important;width:fit-content;max-width:100%;';
+  toast.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).tagName === 'A') return;
+    dismissToast(ann.id);
+  });
 
-    const timeStr = this.formatTimestamp(ann.timestampSeconds);
-    const contentHtml = this.linkifyContent(ann.content);
-    toast.innerHTML = `<div style="font-size:11px;color:#3ea6ff;margin-bottom:3px;font-weight:500;">${timeStr}</div><div>${contentHtml}</div>`;
+  toastContainer.appendChild(toast);
+  activeToasts.set(ann.id, toast);
 
-    toast.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A') return;
-      this.dismiss(ann.id);
-    });
+  setTimeout(() => {
+    dismissToast(ann.id);
+  }, duration);
+}
 
-    this.container.appendChild(toast);
-    this.activeToasts.set(ann.id, toast);
+export function enqueueToast(annotations: Annotation[]): void {
+  if (!layerStore.getState().toastsVisible) return;
 
-    setTimeout(() => {
-      this.dismiss(ann.id);
-    }, duration);
-  }
+  ensureContainer();
 
-  private static formatTimestamp(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
+  for (const ann of annotations) {
+    if (activeToasts.has(ann.id)) continue;
+    if (activeToasts.size >= MAX_VISIBLE_TOASTS) break;
 
-  private static escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  private static linkifyContent(text: string): string {
-    const urlPattern = /(https?:\/\/[^\s<>"')\]]+)/g;
-    const escaped = OverlayNotificationSystem.escapeHtml(text);
-    return escaped.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3ea6ff;text-decoration:underline;pointer-events:auto;">$1</a>');
+    renderToast(ann);
   }
 }
 
-export { OverlayNotificationSystem };
+export function dismissToast(annotationId: string): void {
+  const el = activeToasts.get(annotationId);
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(10px)';
+    el.style.transition = 'opacity 0.2s, transform 0.2s';
+    setTimeout(() => {
+      el.remove();
+      activeToasts.delete(annotationId);
+    }, 200);
+  }
+}
+
+export function hideAllToasts(): void {
+  for (const [, el] of activeToasts) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(10px)';
+    el.style.transition = 'opacity 0.2s, transform 0.2s';
+  }
+  setTimeout(() => {
+    for (const [, el] of activeToasts) {
+      el.remove();
+    }
+    activeToasts.clear();
+    if (toastContainer) {
+      toastContainer.style.display = 'none';
+    }
+  }, 200);
+}
+
+export function showToastContainer(): void {
+  ensureContainer();
+  if (toastContainer) {
+    toastContainer.style.display = '';
+  }
+}

@@ -1,11 +1,12 @@
 import { LocalStorageManager } from '../storage/local';
 import { supabase } from '../storage/supabase';
+import { SYNC_ALARM_PERIOD_MINUTES } from '../content/constants';
 
 chrome.runtime.onInstalled.addListener(async () => {
   await LocalStorageManager.runMigrationPipeline();
 });
 
-chrome.alarms.create('sync_retry_alarm', { periodInMinutes: 5 });
+chrome.alarms.create('sync_retry_alarm', { periodInMinutes: SYNC_ALARM_PERIOD_MINUTES });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'sync_retry_alarm') {
@@ -26,7 +27,6 @@ async function processOutboundSyncQueue(): Promise<void> {
     try {
       const annotations = await LocalStorageManager.getAnnotationsForLayer(layer.id);
 
-      // 1. Sync Layer
       const { error: layerError } = await supabase
         .from('layers')
         .upsert({
@@ -40,7 +40,6 @@ async function processOutboundSyncQueue(): Promise<void> {
 
       if (layerError) throw layerError;
 
-      // 2. Sync Annotations
       const { error: annError } = await supabase
         .from('annotations')
         .upsert(annotations.map(ann => ({
@@ -57,9 +56,8 @@ async function processOutboundSyncQueue(): Promise<void> {
 
       await LocalStorageManager.updateLayerSyncState(layer.id, 'synced');
     } catch (err) {
-      console.error('Sync failed:', err);
+      console.error('Sync failed for layer', layer.id, err);
       await LocalStorageManager.updateLayerSyncState(layer.id, 'error');
-      break;
     }
   }
 }

@@ -1,6 +1,8 @@
 import { createStore } from 'zustand/vanilla';
 import { Layer, Annotation } from '../storage/types';
 import { LocalStorageManager } from '../storage/local';
+import { buildAnnotationMap } from './utils';
+import { MAX_ANNOTATIONS_PER_LAYER, MAX_TITLE_LENGTH, MAX_CONTENT_LENGTH, TOAST_DURATION_MIN, TOAST_DURATION_MAX, MAX_USERNAME_LENGTH } from './constants';
 
 interface LayerState {
   videoId: string | null;
@@ -17,7 +19,7 @@ interface LayerState {
   initializeForVideo: (videoId: string, sharedLayerId?: string | null) => Promise<void>;
   createLayer: (title: string) => Promise<void>;
   addAnnotation: (content: string, timestampSeconds: number) => Promise<void>;
-  updateAnnotation: (annotationId: string, content: string, timestampSeconds: number) => void;
+  updateAnnotation: (annotationId: string, content: string, timestampSeconds: number) => Promise<void>;
   deleteAnnotation: (annotationId: string) => Promise<void>;
   setToastDuration: (seconds: number) => void;
   setUsername: (name: string) => Promise<void>;
@@ -34,12 +36,11 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   isViewerMode: false,
   syncStatus: 'idle',
   lastError: null,
-  toastDurationSeconds: 5,
+  toastDurationSeconds: TOAST_DURATION_MIN,
   username: '',
   toastsVisible: true,
 
   initializeForVideo: async (videoId, sharedLayerId = null) => {
-    console.log('[layerStore] initializeForVideo:', { videoId, sharedLayerId });
     get().reset();
     set({ videoId });
 
@@ -49,16 +50,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
       set({ username: storedUsername });
 
       if (sharedLayerId) {
-        console.log('[layerStore] Handling sharedLayerId:', sharedLayerId);
         set({ syncStatus: 'syncing' });
         const remotePayload = await LocalStorageManager.fetchRemoteLayer(sharedLayerId);
 
         if (remotePayload) {
-          console.log('[layerStore] Remote payload received:', remotePayload.layer.id);
           const isViewer = remotePayload.layer.ownerToken !== ownerToken;
-
-          const annotationMap = new Map<string, Annotation>();
-          remotePayload.annotations.forEach(ann => annotationMap.set(ann.id, ann));
+          const annotationMap = buildAnnotationMap(remotePayload.annotations);
 
           set({
             activeLayer: remotePayload.layer,
@@ -72,8 +69,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
           const localLayer = await LocalStorageManager.getLayer(sharedLayerId);
           if (localLayer && localLayer.youtubeVideoId === videoId) {
             const localAnnotations = await LocalStorageManager.getAnnotationsForLayer(localLayer.id);
-            const annotationMap = new Map<string, Annotation>();
-            localAnnotations.forEach(ann => annotationMap.set(ann.id, ann));
+            const annotationMap = buildAnnotationMap(localAnnotations);
 
             set({
               activeLayer: localLayer,
@@ -89,8 +85,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
         const localLayer = await LocalStorageManager.findLayerByVideo(videoId);
         if (localLayer) {
           const localAnnotations = await LocalStorageManager.getAnnotationsForLayer(localLayer.id);
-          const annotationMap = new Map<string, Annotation>();
-          localAnnotations.forEach(ann => annotationMap.set(ann.id, ann));
+          const annotationMap = buildAnnotationMap(localAnnotations);
 
           set({
             activeLayer: localLayer,
@@ -101,8 +96,8 @@ export const layerStore = createStore<LayerState>((set, get) => ({
       }
 
       get().rebuildIndex();
-    } catch (err: any) {
-      set({ lastError: err.message || 'Initialization failed', syncStatus: 'error' });
+    } catch (err: unknown) {
+      set({ lastError: err instanceof Error ? err.message : String(err), syncStatus: 'error' });
     }
   },
 
@@ -110,7 +105,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
     const { videoId } = get();
     if (!videoId) return;
 
-    const sanitizedTitle = title.trim().substring(0, 100) || `Notes for video ${videoId}`;
+    const sanitizedTitle = title.trim().substring(0, MAX_TITLE_LENGTH) || `Notes for video ${videoId}`;
     const ownerToken = await LocalStorageManager.getOwnerToken();
     const currentUsername = get().username;
 
@@ -136,12 +131,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
     const { activeLayer, isViewerMode } = get();
     if (!activeLayer || isViewerMode) return;
 
-    const sanitizedContent = content.trim().substring(0, 200);
+    const sanitizedContent = content.trim().substring(0, MAX_CONTENT_LENGTH);
     if (sanitizedContent.length === 0) return;
 
     const currentAnnotations = new Map(get().annotations);
-    if (currentAnnotations.size >= 5000) {
-      set({ lastError: 'Layer runtime annotation safety boundary limit hit (5,000 entries max).' });
+    if (currentAnnotations.size >= MAX_ANNOTATIONS_PER_LAYER) {
+      set({ lastError: `Layer runtime annotation safety boundary limit hit (${MAX_ANNOTATIONS_PER_LAYER.toLocaleString()} entries max).` });
       return;
     }
 
@@ -171,11 +166,11 @@ export const layerStore = createStore<LayerState>((set, get) => ({
     LocalStorageManager.queueBackgroundSync(updatedLayer.id);
   },
 
-  updateAnnotation: (annotationId, content, timestampSeconds) => {
+  updateAnnotation: async (annotationId, content, timestampSeconds) => {
     const { activeLayer, isViewerMode, annotations } = get();
     if (!activeLayer || isViewerMode || !annotations.has(annotationId)) return;
 
-    const sanitizedContent = content.trim().substring(0, 200);
+    const sanitizedContent = content.trim().substring(0, MAX_CONTENT_LENGTH);
     if (sanitizedContent.length === 0) return;
 
     const existing = annotations.get(annotationId)!;
@@ -198,7 +193,7 @@ export const layerStore = createStore<LayerState>((set, get) => ({
     set({ activeLayer: updatedLayer, annotations: currentAnnotations });
     get().rebuildIndex();
 
-    LocalStorageManager.saveLayerLocally(updatedLayer, Array.from(currentAnnotations.values()));
+    await LocalStorageManager.saveLayerLocally(updatedLayer, Array.from(currentAnnotations.values()));
   },
 
   deleteAnnotation: async (annotationId) => {
@@ -223,12 +218,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   },
 
   setToastDuration: (seconds) => {
-    const clamped = Math.min(30, Math.max(5, Math.round(seconds)));
+    const clamped = Math.min(TOAST_DURATION_MAX, Math.max(TOAST_DURATION_MIN, Math.round(seconds)));
     set({ toastDurationSeconds: clamped });
   },
 
   setUsername: async (name) => {
-    const sanitized = name.trim().substring(0, 50);
+    const sanitized = name.trim().substring(0, MAX_USERNAME_LENGTH);
     set({ username: sanitized });
     await LocalStorageManager.setUsername(sanitized);
 
@@ -251,12 +246,16 @@ export const layerStore = createStore<LayerState>((set, get) => ({
   },
 
   reset: () => set({
+    videoId: null,
     activeLayer: null,
     annotations: new Map(),
     timeIndexMap: new Map(),
     isViewerMode: false,
     syncStatus: 'idle',
-    lastError: null
+    lastError: null,
+    toastDurationSeconds: TOAST_DURATION_MIN,
+    username: '',
+    toastsVisible: true
   }),
 
   rebuildIndex: () => {

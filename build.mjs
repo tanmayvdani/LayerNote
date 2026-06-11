@@ -4,6 +4,14 @@ import { join } from 'path';
 
 const DIST = 'dist';
 
+const ENV_SUPABASE_URL = process.env.SUPABASE_URL || 'https://silgimyukbflpayzpwic.supabase.co';
+const ENV_SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_fjJV0YgwMkYKcH0e0bmnGg_YQNbBuvw';
+
+const defineEnv = {
+  SUPABASE_URL: JSON.stringify(ENV_SUPABASE_URL),
+  SUPABASE_ANON_KEY: JSON.stringify(ENV_SUPABASE_ANON_KEY),
+};
+
 if (!existsSync(DIST)) mkdirSync(DIST, { recursive: true });
 
 async function main() {
@@ -15,6 +23,7 @@ async function main() {
       format: 'iife',
       target: 'chrome120',
       minify: true,
+      define: defineEnv,
     }),
     build({
       entryPoints: ['src/background/index.ts'],
@@ -23,6 +32,7 @@ async function main() {
       format: 'esm',
       target: 'chrome120',
       minify: true,
+      define: defineEnv,
     }),
   ]);
 

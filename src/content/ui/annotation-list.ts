@@ -1,5 +1,7 @@
 import { Annotation } from '../../storage/types';
 import { layerStore } from '../layer-state';
+import { formatTimestamp, parseTimestamp } from '../utils';
+import { VIDEO_SELECTOR, MAX_CONTENT_LENGTH } from '../constants';
 
 export function renderTimeline(searchQuery: string = ''): HTMLElement {
   const container = document.createElement('div');
@@ -40,7 +42,7 @@ function createCard(ann: Annotation, isViewer: boolean): HTMLElement {
   tsBtn.textContent = formatTimestamp(ann.timestampSeconds);
   tsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const video = document.querySelector<HTMLVideoElement>('video.html5-main-video');
+    const video = document.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
     if (video) {
       video.currentTime = ann.timestampSeconds;
     }
@@ -77,7 +79,7 @@ function createCard(ann: Annotation, isViewer: boolean): HTMLElement {
     card.appendChild(del);
   } else {
     card.addEventListener('click', () => {
-      const video = document.querySelector<HTMLVideoElement>('video.html5-main-video');
+      const video = document.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
       if (video) {
         video.currentTime = ann.timestampSeconds;
       }
@@ -107,7 +109,7 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
   textInput.className = 'layer-card-edit-input';
   textInput.type = 'text';
   textInput.value = ann.content;
-  textInput.maxLength = 200;
+  textInput.maxLength = MAX_CONTENT_LENGTH;
   textInput.addEventListener('click', (e) => e.stopPropagation());
 
   body.appendChild(textInput);
@@ -191,22 +193,4 @@ function enterEditMode(card: HTMLElement, ann: Annotation): void {
 function rebuildCard(card: HTMLElement, ann: Annotation, isViewer: boolean): void {
   const fresh = createCard(ann, isViewer);
   card.replaceWith(fresh);
-}
-
-function formatTimestamp(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function parseTimestamp(raw: string): number {
-  const parts = raw.split(':').map(Number);
-  if (parts.some(isNaN)) return NaN;
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return parts[0];
 }

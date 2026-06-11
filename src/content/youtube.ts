@@ -2,19 +2,18 @@ import { layerStore } from './layer-state';
 import { SyncEngineInstance } from './timestamp-engine';
 import { LocalStorageManager } from '../storage/local';
 import { mountSidebarUI } from './ui/sidebar';
-
-const YT_VIDEO_SELECTOR = 'video.html5-main-video';
+import { VIDEO_SELECTOR } from './constants';
 
 function waitForVideoElement(): Promise<HTMLVideoElement> {
   return new Promise((resolve) => {
-    const existing = document.querySelector<HTMLVideoElement>(YT_VIDEO_SELECTOR);
+    const existing = document.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
     if (existing) {
       resolve(existing);
       return;
     }
 
     const observer = new MutationObserver(() => {
-      const el = document.querySelector<HTMLVideoElement>(YT_VIDEO_SELECTOR);
+      const el = document.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
       if (el) {
         observer.disconnect();
         resolve(el);
@@ -30,12 +29,7 @@ function injectOverlayStyles(): void {
 
   const style = document.createElement('style');
   style.id = 'layer-overlay-styles';
-  style.textContent = `
-    @keyframes layer-slide-in {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-  `;
+  style.textContent = '';
   document.head.appendChild(style);
 }
 
