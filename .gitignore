@@ -4,3 +4,6 @@ dist/
 .agents/
 skills-lock.json
 *.zip
+.playwright-mcp/
+.playwright-profile/
+scripts/.playwright-profile/
