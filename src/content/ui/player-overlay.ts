@@ -65,14 +65,22 @@ export function showPlayerOverlay(): void {
   };
 
   input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      e.stopPropagation();
       dismissPlayerOverlay();
     }
+  });
+
+  input.addEventListener('keyup', (e) => {
+    e.stopPropagation();
+  });
+
+  input.addEventListener('keypress', (e) => {
+    e.stopPropagation();
   });
 
   const backdrop = document.createElement('div');
