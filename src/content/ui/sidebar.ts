@@ -191,15 +191,6 @@ function buildPanel(): HTMLElement {
     badge.className = 'layer-viewer-badge';
     badge.textContent = 'VIEWER';
     headerLeft.appendChild(badge);
-
-    const ownerName = state.activeLayer?.ownerName;
-    if (ownerName) {
-      const ownerLabel = document.createElement('span');
-      ownerLabel.className = 'layer-owner-name';
-      ownerLabel.textContent = `${ownerName}'s layer`;
-      ownerLabel.title = `Created by ${ownerName}`;
-      headerLeft.appendChild(ownerLabel);
-    }
   }
 
   header.appendChild(headerLeft);
@@ -248,11 +239,6 @@ function buildPanel(): HTMLElement {
   if (state.activeLayer) {
     if (!state.isViewerMode) {
       body.appendChild(renderCreateBar(currentVideo));
-    } else {
-      const viewerNote = document.createElement('div');
-      viewerNote.style.cssText = 'color:#717171;font-size:11px;text-align:center;padding:8px 12px;border-bottom:1px solid #1e1e1e;';
-      viewerNote.textContent = 'Viewing \u2014 annotations are read-only';
-      body.appendChild(viewerNote);
     }
 
     const annCount = state.annotations.size;
