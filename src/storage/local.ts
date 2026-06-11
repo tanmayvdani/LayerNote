@@ -324,7 +324,7 @@ export const LocalStorageManager = {
         .maybeSingle();
 
       if (fetchError) {
-        console.error('[LocalStorageManager] toggleReaction fetch error:', fetchError);
+        console.error('[LocalStorageManager] toggleReaction fetch error:', fetchError.message, fetchError.details, fetchError.hint);
         return { likeCount: 0, dislikeCount: 0, userReaction: null };
       }
 
@@ -336,50 +336,36 @@ export const LocalStorageManager = {
             .from('layer_reactions')
             .delete()
             .eq('id', existing.id);
-          if (deleteError) console.error('[LocalStorageManager] toggleReaction delete error:', deleteError);
+          if (deleteError) console.error('[LocalStorageManager] toggleReaction delete error:', deleteError.message, deleteError.details);
           finalReaction = null;
         } else {
           const { error: updateError } = await supabase
             .from('layer_reactions')
             .update({ reaction_type: reactionType })
             .eq('id', existing.id);
-          if (updateError) console.error('[LocalStorageManager] toggleReaction update error:', updateError);
+          if (updateError) console.error('[LocalStorageManager] toggleReaction update error:', updateError.message, updateError.details);
         }
       } else {
         const { error: insertError } = await supabase
           .from('layer_reactions')
           .insert({ layer_id: layerId, owner_token: ownerToken, reaction_type: reactionType });
-        if (insertError) console.error('[LocalStorageManager] toggleReaction insert error:', insertError);
+        if (insertError) console.error('[LocalStorageManager] toggleReaction insert error:', insertError.message, insertError.details);
       }
-
-      const { data: likeCountResult } = await supabase
-        .from('layer_reactions')
-        .select('id', { count: 'exact', head: true })
-        .eq('layer_id', layerId)
-        .eq('reaction_type', 'like');
-
-      const { data: dislikeCountResult } = await supabase
-        .from('layer_reactions')
-        .select('id', { count: 'exact', head: true })
-        .eq('layer_id', layerId)
-        .eq('reaction_type', 'dislike');
-
-      let likeCount = 0;
-      let dislikeCount = 0;
 
       const { count: lc } = await supabase
         .from('layer_reactions')
         .select('*', { count: 'exact', head: true })
         .eq('layer_id', layerId)
         .eq('reaction_type', 'like');
-      likeCount = lc ?? 0;
 
       const { count: dc } = await supabase
         .from('layer_reactions')
         .select('*', { count: 'exact', head: true })
         .eq('layer_id', layerId)
         .eq('reaction_type', 'dislike');
-      dislikeCount = dc ?? 0;
+
+      const likeCount = lc ?? 0;
+      const dislikeCount = dc ?? 0;
 
       await supabase
         .from('layers')
@@ -388,7 +374,8 @@ export const LocalStorageManager = {
 
       return { likeCount, dislikeCount, userReaction: finalReaction };
     } catch (err) {
-      console.error('[LocalStorageManager] toggleReaction failed:', err);
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[LocalStorageManager] toggleReaction failed:', message);
       return { likeCount: 0, dislikeCount: 0, userReaction: null };
     }
   },
