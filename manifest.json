@@ -28,7 +28,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/icon128.png", "icons/add.png"],
+      "resources": ["icons/icon128.png", "icons/add.png", "icons/like.png", "icons/like_filled.png", "icons/lm_like.png", "icons/lm_like_filled.png"],
       "matches": ["*://*.youtube.com/*"]
     }
   ]

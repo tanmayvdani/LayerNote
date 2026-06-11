@@ -176,6 +176,18 @@ function updateButtonState(): void {
   }
 }
 
+function isDarkMode(): boolean {
+  return document.documentElement.getAttribute('dark') !== null;
+}
+
+function getReactionIconHtml(type: 'like' | 'dislike', filled: boolean): string {
+  const dark = isDarkMode();
+  const name = filled ? 'like_filled' : (dark ? 'like' : 'lm_like');
+  const src = chrome.runtime.getURL(`icons/${name}.png`);
+  const rotate = type === 'dislike' ? ' layer-reaction-icon-rotate' : '';
+  return `<img class="layer-reaction-icon-img${rotate}" src="${src}" alt="${type}" draggable="false">`;
+}
+
 function injectPanel(): void {
   if (document.getElementById('layer-panel')) return;
 
@@ -486,7 +498,7 @@ function renderBrowseTab(state: ReturnType<typeof layerStore.getState>): HTMLEle
 
     const likeBtn = document.createElement('button');
     likeBtn.className = 'layer-reaction-btn' + (summary.userReaction === 'like' ? ' layer-reaction-active' : '');
-    likeBtn.innerHTML = `<span class="layer-reaction-icon">\uD83D\uDC4D</span><span class="layer-reaction-count">${summary.layer.likeCount}</span>`;
+    likeBtn.innerHTML = getReactionIconHtml('like', summary.userReaction === 'like') + `<span class="layer-reaction-count">${summary.layer.likeCount}</span>`;
     likeBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       await layerStore.getState().likeLayer(summary.layer.id);
@@ -495,7 +507,7 @@ function renderBrowseTab(state: ReturnType<typeof layerStore.getState>): HTMLEle
 
     const dislikeBtn = document.createElement('button');
     dislikeBtn.className = 'layer-reaction-btn' + (summary.userReaction === 'dislike' ? ' layer-reaction-active' : '');
-    dislikeBtn.innerHTML = `<span class="layer-reaction-icon">\uD83D\uDC4E</span><span class="layer-reaction-count">${summary.layer.dislikeCount}</span>`;
+    dislikeBtn.innerHTML = getReactionIconHtml('dislike', summary.userReaction === 'dislike') + `<span class="layer-reaction-count">${summary.layer.dislikeCount}</span>`;
     dislikeBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       await layerStore.getState().dislikeLayer(summary.layer.id);

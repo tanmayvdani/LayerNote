@@ -709,6 +709,18 @@ export const SIDEBAR_STYLES = `
   line-height: 1;
 }
 
+.layer-reaction-icon-img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.layer-reaction-icon-rotate {
+  transform: rotate(180deg);
+}
+
 .layer-reaction-count {
   font-size: 11px;
   color: #aaa;
