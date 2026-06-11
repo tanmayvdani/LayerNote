@@ -1,0 +1,614 @@
+- generic [ref=e83]:
+  - banner [ref=e62]:
+    - generic [ref=e64]:
+      - generic [ref=e65]:
+        - button "Guide" [ref=e67] [cursor=pointer]:
+          - generic [ref=e85]:
+            - img
+        - generic [ref=e69]:
+          - link "YouTube Home" [ref=e86] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e91]:
+              - img
+          - generic [ref=e92]: IN
+        - button "Skip navigation" [ref=e96] [cursor=pointer]:
+          - generic [ref=e97]: Skip navigation
+      - generic [ref=e70]:
+        - search [ref=e71]:
+          - generic [ref=e72]:
+            - combobox "Search" [expanded] [ref=e101]
+            - button "Search" [ref=e76] [cursor=pointer]:
+              - generic [ref=e103]:
+                - img
+        - generic [ref=e105]:
+          - button "Search with your voice" [ref=e107] [cursor=pointer]:
+            - generic [ref=e111]:
+              - img
+          - tooltip "tooltip"
+      - generic [ref=e115]:
+        - button "Settings" [ref=e120] [cursor=pointer]:
+          - generic [ref=e123]:
+            - img
+        - link "Sign in" [ref=e126] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fwatch%253Fv%253DzxKPjD8urG4&hl=en&ec=65620
+          - generic [ref=e130]:
+            - img
+          - generic [ref=e131]: Sign in
+  - main [ref=e136]:
+    - complementary [ref=e142]:
+      - generic "YouTube Video Player" [ref=e5]:
+        - generic [ref=e146]:
+          - generic [ref=e148]: where Emperors
+          - generic [ref=e150]: Reign and Gladiators
+        - generic [ref=e10]:
+          - generic [ref=e11] [cursor=pointer]:
+            - slider "Seek slider" [ref=e12]
+            - generic:
+              - generic:
+                - generic:
+                  - slider "Click or scroll the panel for the precise seeking."
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - button "Pause (k)" [ref=e23] [cursor=pointer]:
+                - img
+              - generic [ref=e24]:
+                - button "Mute keyboard shortcut m" [ref=e231] [cursor=pointer]:
+                  - img
+                - slider "Volume"
+              - button "0 Minutes 4 Seconds of 47 Minutes 22 Seconds" [ref=e232] [cursor=pointer]: 0:04 / 47:22
+              - button "Intro" [ref=e234] [cursor=pointer]:
+                - generic "Intro" [ref=e235]
+                - generic [ref=e236]:
+                  - img
+            - generic [ref=e31]:
+              - generic [ref=e32]:
+                - button "Autoplay is on" [ref=e237] [cursor=pointer]
+                - button "Subtitles/closed captions (c)" [pressed] [ref=e33] [cursor=pointer]:
+                  - generic [ref=e34]:
+                    - img
+                - button "Settings" [ref=e35] [cursor=pointer]:
+                  - img
+              - generic [ref=e36]:
+                - button "Theater mode (t)" [ref=e37] [cursor=pointer]:
+                  - img
+                - button "Full screen (f)" [ref=e38] [cursor=pointer]:
+                  - img
+    - generic [ref=e243]:
+      - generic [ref=e244]:
+        - generic [ref=e246]:
+          - heading "The Rise of the Roman Empire (Full Episode) | Drain the Oceans" [level=1] [ref=e248]
+          - generic [ref=e249]:
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - link "National Geographic" [ref=e252] [cursor=pointer]:
+                  - /url: /@NatGeo
+                  - img "National Geographic" [ref=e254]
+                - generic [ref=e255]:
+                  - generic [ref=e256]:
+                    - generic "National Geographic" [ref=e259]:
+                      - link "National Geographic" [ref=e260] [cursor=pointer]:
+                        - /url: /@NatGeo
+                    - img "Verified" [ref=e265]:
+                      - generic [ref=e268]:
+                        - img
+                  - generic "26.1 million subscribers" [ref=e269]: 26.1M subscribers
+              - generic [ref=e273]:
+                - button "Subscribe to National Geographic." [ref=e275] [cursor=pointer]:
+                  - generic [ref=e276]: Subscribe
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                  - generic:
+                    - img
+            - generic [ref=e283]:
+              - generic [ref=e284]:
+                - generic [ref=e288]:
+                  - button "like this video along with 20,947 other people" [ref=e292] [cursor=pointer]:
+                    - generic [ref=e296]:
+                      - img
+                    - generic [ref=e297]: 20K
+                  - button "Dislike this video" [ref=e304] [cursor=pointer]:
+                    - generic [ref=e308]:
+                      - img
+                - button "Share" [ref=e314] [cursor=pointer]:
+                  - generic [ref=e318]:
+                    - img
+                  - generic [ref=e319]: Share
+              - generic [ref=e323]:
+                - generic [ref=e325]:
+                  - button "Download" [ref=e327] [cursor=pointer]:
+                    - generic [ref=e331]:
+                      - img
+                    - generic [ref=e332]: Download
+                  - tooltip "tooltip"
+                - button "Save to playlist" [ref=e338] [cursor=pointer]:
+                  - generic [ref=e342]:
+                    - img
+                  - generic [ref=e343]: Save
+              - button "More actions" [ref=e348] [cursor=pointer]:
+                - generic [ref=e352]:
+                  - img
+          - generic [ref=e358] [cursor=pointer]:
+            - generic [ref=e359]:
+              - generic [ref=e361]:
+                - text: 2.8M views 2 years ago
+                - link "#DrainTheOceans" [ref=e362]:
+                  - /url: /hashtag/draintheoceans
+                - link "#NationalGeographic" [ref=e363]:
+                  - /url: /hashtag/nationalgeographic
+                - link "#FullEpisode" [ref=e364]:
+                  - /url: /hashtag/fullepisode
+              - tooltip "tooltip"
+            - generic [ref=e365]:
+              - generic [ref=e366]:
+                - generic [ref=e369]: The secrets of the survival of the Roman empire are unearthed from beneath the waves of the Mediterranean and the soil of the Italian peninsula.
+                - generic: …
+              - button "...more" [ref=e370]
+        - text: •
+      - generic [ref=e371]:
+        - generic [ref=e376]:
+          - generic [ref=e378] [cursor=pointer]:
+            - link [ref=e379]:
+              - /url: /watch?v=G1p6rlDCxq0&pp=ugUHEgVlbi1HQg%3D%3D
+              - generic [ref=e386]: 1:04:50
+            - generic [ref=e388]:
+              - generic [ref=e389]:
+                - heading "World War 1 (All Parts, 4k) 1 hour, 4 minutes" [level=3] [ref=e390]:
+                  - link "World War 1 (All Parts, 4k) 1 hour, 4 minutes" [ref=e391]:
+                    - /url: /watch?v=G1p6rlDCxq0&pp=ugUHEgVlbi1HQg%3D%3D
+                    - text: World War 1 (All Parts, 4k)
+                - generic [ref=e393]:
+                  - group [ref=e394]:
+                    - generic [ref=e395]:
+                      - text: Epic History
+                      - img [ref=e398]:
+                        - generic [ref=e400]:
+                          - img
+                  - group [ref=e401]:
+                    - generic [ref=e402]: 22M views
+                    - generic [ref=e403]: •
+                    - generic "3 years ago" [ref=e404]
+              - button "More actions" [ref=e407]:
+                - generic [ref=e411]:
+                  - img
+          - generic [ref=e416] [cursor=pointer]:
+            - link [ref=e417]:
+              - /url: /watch?v=EHLI2WZUtXs
+              - generic [ref=e424]: 38:30
+            - generic [ref=e426]:
+              - generic [ref=e427]:
+                - heading "The ENTIRE History of ROME 38 minutes" [level=3] [ref=e428]:
+                  - link "The ENTIRE History of ROME 38 minutes" [ref=e429]:
+                    - /url: /watch?v=EHLI2WZUtXs
+                    - text: The ENTIRE History of ROME
+                - generic [ref=e431]:
+                  - group [ref=e432]:
+                    - generic [ref=e433]:
+                      - text: Historically
+                      - img [ref=e436]:
+                        - generic [ref=e438]:
+                          - img
+                  - group [ref=e439]:
+                    - generic [ref=e440]: 4.4M views
+                    - generic [ref=e441]: •
+                    - generic "1 month ago" [ref=e442]
+              - button "More actions" [ref=e445]:
+                - generic [ref=e449]:
+                  - img
+          - generic [ref=e454] [cursor=pointer]:
+            - link [ref=e455]:
+              - /url: /watch?v=P3IIRiSTc3g
+              - generic [ref=e462]: 3:53:17
+            - generic [ref=e464]:
+              - generic [ref=e465]:
+                - heading "The Complete History Of The Roman Empire In 4 Hours | Empire Without Limit (Full Series) 3 hours, 53 minutes" [level=3] [ref=e466]:
+                  - link "The Complete History Of The Roman Empire In 4 Hours | Empire Without Limit (Full Series) 3 hours, 53 minutes" [ref=e467]:
+                    - /url: /watch?v=P3IIRiSTc3g
+                    - text: The Complete History Of The Roman Empire In 4 Hours | Empire Without Limit (Full Series)
+                - generic [ref=e469]:
+                  - group [ref=e470]:
+                    - generic [ref=e471]: Odyssey - Ancient History Documentaries
+                  - group [ref=e472]:
+                    - generic [ref=e473]: 13M views
+                    - generic [ref=e474]: •
+                    - generic "3 years ago" [ref=e475]
+              - button "More actions" [ref=e478]:
+                - generic [ref=e482]:
+                  - img
+          - generic [ref=e487] [cursor=pointer]:
+            - link [ref=e488]:
+              - /url: /watch?v=WXOz9HHaO3I
+              - generic [ref=e495]: 54:07
+            - generic [ref=e497]:
+              - generic [ref=e498]:
+                - heading "Inside Einstein's Mind | Full Documentary | NOVA | PBS 54 minutes" [level=3] [ref=e499]:
+                  - link "Inside Einstein's Mind | Full Documentary | NOVA | PBS 54 minutes" [ref=e500]:
+                    - /url: /watch?v=WXOz9HHaO3I
+                    - text: Inside Einstein's Mind | Full Documentary | NOVA | PBS
+                - generic [ref=e502]:
+                  - group [ref=e503]:
+                    - generic [ref=e504]:
+                      - text: NOVA PBS Official
+                      - img [ref=e507]:
+                        - generic [ref=e509]:
+                          - img
+                  - group [ref=e510]:
+                    - generic [ref=e511]: 2.9M views
+                    - generic [ref=e512]: •
+                    - generic "10 months ago" [ref=e513]
+              - button "More actions" [ref=e516]:
+                - generic [ref=e520]:
+                  - img
+          - generic [ref=e525] [cursor=pointer]:
+            - link [ref=e526]:
+              - /url: /watch?v=xaoCs1NFcVc&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e533]: 47:23
+            - generic [ref=e535]:
+              - generic [ref=e536]:
+                - heading "Secrets of the Spanish Armada (Full Episode) | Drain the Oceans | National Geographic 47 minutes" [level=3] [ref=e537]:
+                  - link "Secrets of the Spanish Armada (Full Episode) | Drain the Oceans | National Geographic 47 minutes" [ref=e538]:
+                    - /url: /watch?v=xaoCs1NFcVc&pp=ugUEEgJlbg%3D%3D
+                    - text: Secrets of the Spanish Armada (Full Episode) | Drain the Oceans | National Geographic
+                - generic [ref=e540]:
+                  - group [ref=e541]:
+                    - generic [ref=e542]:
+                      - text: National Geographic
+                      - img [ref=e545]:
+                        - generic [ref=e547]:
+                          - img
+                  - group [ref=e548]:
+                    - generic [ref=e549]: 796K views
+                    - generic [ref=e550]: •
+                    - generic "1 year ago" [ref=e551]
+              - button "More actions" [ref=e554]:
+                - generic [ref=e558]:
+                  - img
+          - generic [ref=e563] [cursor=pointer]:
+            - link [ref=e564]:
+              - /url: /watch?v=EF8C4v7JIbA
+              - generic [ref=e571]: 1:07:23
+            - generic [ref=e573]:
+              - generic [ref=e574]:
+                - heading "Travel to the Depths of Our Mysterious Oceans | 4K UHD | Blue Planet II | BBC Earth 1 hour, 7 minutes" [level=3] [ref=e575]:
+                  - link "Travel to the Depths of Our Mysterious Oceans | 4K UHD | Blue Planet II | BBC Earth 1 hour, 7 minutes" [ref=e576]:
+                    - /url: /watch?v=EF8C4v7JIbA
+                    - text: Travel to the Depths of Our Mysterious Oceans | 4K UHD | Blue Planet II | BBC Earth
+                - generic [ref=e578]:
+                  - group [ref=e579]:
+                    - generic [ref=e580]:
+                      - text: BBC Earth
+                      - img [ref=e583]:
+                        - generic [ref=e585]:
+                          - img
+                  - group [ref=e586]:
+                    - generic [ref=e587]: 28M views
+                    - generic [ref=e588]: •
+                    - generic "2 years ago" [ref=e589]
+              - button "More actions" [ref=e592]:
+                - generic [ref=e596]:
+                  - img
+          - generic [ref=e601] [cursor=pointer]:
+            - link [ref=e602]:
+              - /url: /watch?v=1EPYzzsi_Y4&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e609]: 3:29:21
+            - generic [ref=e611]:
+              - generic [ref=e612]:
+                - 'heading "Empire Cities: The Rise of Amsterdam, London, and New York 3 hours, 29 minutes" [level=3] [ref=e613]':
+                  - 'link "Empire Cities: The Rise of Amsterdam, London, and New York 3 hours, 29 minutes" [ref=e614]':
+                    - /url: /watch?v=1EPYzzsi_Y4&pp=ugUEEgJlbg%3D%3D
+                    - text: "Empire Cities: The Rise of Amsterdam, London, and New York"
+                - generic [ref=e616]:
+                  - group [ref=e617]:
+                    - generic [ref=e618]: History & Civilizations
+                  - group [ref=e619]:
+                    - generic [ref=e620]: 842K views
+                    - generic [ref=e621]: •
+                    - generic "11 months ago" [ref=e622]
+              - button "More actions" [ref=e625]:
+                - generic [ref=e629]:
+                  - img
+          - generic [ref=e634] [cursor=pointer]:
+            - link [ref=e635]:
+              - /url: /watch?v=R2DU85qLfJQ
+              - generic [ref=e642]: 48:44
+            - generic [ref=e644]:
+              - generic [ref=e645]:
+                - heading "Our Planet | Fresh Water | FULL EPISODE | Netflix 48 minutes" [level=3] [ref=e646]:
+                  - link "Our Planet | Fresh Water | FULL EPISODE | Netflix 48 minutes" [ref=e647]:
+                    - /url: /watch?v=R2DU85qLfJQ
+                    - text: Our Planet | Fresh Water | FULL EPISODE | Netflix
+                - generic [ref=e649]:
+                  - group [ref=e650]:
+                    - generic [ref=e651]:
+                      - text: Netflix
+                      - img [ref=e654]:
+                        - generic [ref=e656]:
+                          - img
+                  - group [ref=e657]:
+                    - generic [ref=e658]: 26M views
+                    - generic [ref=e659]: •
+                    - generic "6 years ago" [ref=e660]
+              - button "More actions" [ref=e663]:
+                - generic [ref=e667]:
+                  - img
+          - generic [ref=e672] [cursor=pointer]:
+            - link [ref=e673]:
+              - /url: /watch?v=2huuq4H5CRY
+              - generic [ref=e680]: 2:19:28
+            - generic [ref=e682]:
+              - generic [ref=e683]:
+                - heading "The Entire History of the Roman Republic (All Parts) - 753 BC - 27 BC 2 hours, 19 minutes" [level=3] [ref=e684]:
+                  - link "The Entire History of the Roman Republic (All Parts) - 753 BC - 27 BC 2 hours, 19 minutes" [ref=e685]:
+                    - /url: /watch?v=2huuq4H5CRY
+                    - text: The Entire History of the Roman Republic (All Parts) - 753 BC - 27 BC
+                - generic [ref=e687]:
+                  - group [ref=e688]:
+                    - generic [ref=e689]:
+                      - text: Knowledgia
+                      - img [ref=e692]:
+                        - generic [ref=e694]:
+                          - img
+                  - group [ref=e695]:
+                    - generic [ref=e696]: 2.7M views
+                    - generic [ref=e697]: •
+                    - generic "2 years ago" [ref=e698]
+              - button "More actions" [ref=e701]:
+                - generic [ref=e705]:
+                  - img
+          - generic [ref=e710] [cursor=pointer]:
+            - link [ref=e711]:
+              - /url: /watch?v=evmyQGmuzqA&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e718]: 44:25
+            - generic [ref=e720]:
+              - generic [ref=e721]:
+                - heading "Secrets of the Colosseum (Full Episode) | Lost Treasures of Rome | National Geographic 44 minutes" [level=3] [ref=e722]:
+                  - link "Secrets of the Colosseum (Full Episode) | Lost Treasures of Rome | National Geographic 44 minutes" [ref=e723]:
+                    - /url: /watch?v=evmyQGmuzqA&pp=ugUEEgJlbg%3D%3D
+                    - text: Secrets of the Colosseum (Full Episode) | Lost Treasures of Rome | National Geographic
+                - generic [ref=e725]:
+                  - group [ref=e726]:
+                    - generic [ref=e727]:
+                      - text: National Geographic
+                      - img [ref=e730]:
+                        - generic [ref=e732]:
+                          - img
+                  - group [ref=e733]:
+                    - generic [ref=e734]: 2.1M views
+                    - generic [ref=e735]: •
+                    - generic "1 year ago" [ref=e736]
+              - button "More actions" [ref=e739]:
+                - generic [ref=e743]:
+                  - img
+          - generic [ref=e748] [cursor=pointer]:
+            - link [ref=e749]:
+              - /url: /watch?v=bxIV_itPWkU
+              - generic [ref=e756]: 3:52:09
+            - generic [ref=e758]:
+              - generic [ref=e759]:
+                - heading "The Greatest Mysteries of the Pacific Ocean | Drain the Oceans | MEGA EPISODE | Nat Geo 3 hours, 52 minutes" [level=3] [ref=e760]:
+                  - link "The Greatest Mysteries of the Pacific Ocean | Drain the Oceans | MEGA EPISODE | Nat Geo 3 hours, 52 minutes" [ref=e761]:
+                    - /url: /watch?v=bxIV_itPWkU
+                    - text: The Greatest Mysteries of the Pacific Ocean | Drain the Oceans | MEGA EPISODE | Nat Geo
+                - generic [ref=e763]:
+                  - group [ref=e764]:
+                    - generic [ref=e765]:
+                      - text: National Geographic
+                      - img [ref=e768]:
+                        - generic [ref=e770]:
+                          - img
+                  - group [ref=e771]:
+                    - generic [ref=e772]: 2.2M views
+                    - generic [ref=e773]: •
+                    - generic "10 months ago" [ref=e774]
+              - button "More actions" [ref=e777]:
+                - generic [ref=e781]:
+                  - img
+          - generic [ref=e786] [cursor=pointer]:
+            - link [ref=e787]:
+              - /url: /watch?v=11bINdW0sew&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e794]: 47:23
+            - generic [ref=e796]:
+              - generic [ref=e797]:
+                - 'heading "Lost Giants: Epic Shipwrecks of the Century (Full Episode) | Drain the Oceans 47 minutes" [level=3] [ref=e798]':
+                  - 'link "Lost Giants: Epic Shipwrecks of the Century (Full Episode) | Drain the Oceans 47 minutes" [ref=e799]':
+                    - /url: /watch?v=11bINdW0sew&pp=ugUEEgJlbg%3D%3D
+                    - text: "Lost Giants: Epic Shipwrecks of the Century (Full Episode) | Drain the Oceans"
+                - generic [ref=e801]:
+                  - group [ref=e802]:
+                    - generic [ref=e803]:
+                      - text: National Geographic
+                      - img [ref=e806]:
+                        - generic [ref=e808]:
+                          - img
+                  - group [ref=e809]:
+                    - generic [ref=e810]: 1.5M views
+                    - generic [ref=e811]: •
+                    - generic "1 year ago" [ref=e812]
+              - button "More actions" [ref=e815]:
+                - generic [ref=e819]:
+                  - img
+          - generic [ref=e824] [cursor=pointer]:
+            - link [ref=e825]:
+              - /url: /watch?v=MzB1WOJUenY
+              - generic [ref=e832]: 47:23
+            - generic [ref=e834]:
+              - generic [ref=e835]:
+                - heading "Uncovering the Secrets of New York City (Full Episode) | Drain the Oceans 47 minutes" [level=3] [ref=e836]:
+                  - link "Uncovering the Secrets of New York City (Full Episode) | Drain the Oceans 47 minutes" [ref=e837]:
+                    - /url: /watch?v=MzB1WOJUenY
+                    - text: Uncovering the Secrets of New York City (Full Episode) | Drain the Oceans
+                - generic [ref=e839]:
+                  - group [ref=e840]:
+                    - generic [ref=e841]:
+                      - text: National Geographic
+                      - img [ref=e844]:
+                        - generic [ref=e846]:
+                          - img
+                  - group [ref=e847]:
+                    - generic [ref=e848]: 4.6M views
+                    - generic [ref=e849]: •
+                    - generic "2 years ago" [ref=e850]
+              - button "More actions" [ref=e853]:
+                - generic [ref=e857]:
+                  - img
+          - generic [ref=e862] [cursor=pointer]:
+            - link [ref=e863]:
+              - /url: /watch?v=xso3-1ZWirs
+              - generic [ref=e870]: 33:24
+            - generic [ref=e872]:
+              - generic [ref=e873]:
+                - heading "What Was Life Really Like in Ancient Rome? | Experience 7 Days as a Roman Citizen In 117 AD 33 minutes" [level=3] [ref=e874]:
+                  - link "What Was Life Really Like in Ancient Rome? | Experience 7 Days as a Roman Citizen In 117 AD 33 minutes" [ref=e875]:
+                    - /url: /watch?v=xso3-1ZWirs
+                    - text: What Was Life Really Like in Ancient Rome? | Experience 7 Days as a Roman Citizen In 117 AD
+                - generic [ref=e877]:
+                  - group [ref=e878]:
+                    - generic [ref=e879]: timewarp cities
+                  - group [ref=e880]:
+                    - generic [ref=e881]: 365K views
+                    - generic [ref=e882]: •
+                    - generic "1 month ago" [ref=e883]
+              - button "More actions" [ref=e886]:
+                - generic [ref=e890]:
+                  - img
+          - generic [ref=e895] [cursor=pointer]:
+            - link [ref=e896]:
+              - /url: /watch?v=8AgeNvHZ_ks&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e903]: 44:25
+            - generic [ref=e905]:
+              - generic [ref=e906]:
+                - heading "Egypt's Ancient Empire | Egypt From Above (Full Episode) The Nile River 44 minutes" [level=3] [ref=e907]:
+                  - link "Egypt's Ancient Empire | Egypt From Above (Full Episode) The Nile River 44 minutes" [ref=e908]:
+                    - /url: /watch?v=8AgeNvHZ_ks&pp=ugUEEgJlbg%3D%3D
+                    - text: Egypt's Ancient Empire | Egypt From Above (Full Episode) The Nile River
+                - generic [ref=e910]:
+                  - group [ref=e911]:
+                    - generic [ref=e912]:
+                      - text: National Geographic
+                      - img [ref=e915]:
+                        - generic [ref=e917]:
+                          - img
+                  - group [ref=e918]:
+                    - generic [ref=e919]: 4.9M views
+                    - generic [ref=e920]: •
+                    - generic "2 years ago" [ref=e921]
+              - button "More actions" [ref=e924]:
+                - generic [ref=e928]:
+                  - img
+          - generic [ref=e933] [cursor=pointer]:
+            - link [ref=e934]:
+              - /url: /watch?v=bmvxRMYxlhE&pp=ugUEEgJlbg%3D%3D
+              - generic [ref=e941]: 16:52
+            - generic [ref=e943]:
+              - generic [ref=e944]:
+                - heading "How the Colosseum Actually Worked 16 minutes" [level=3] [ref=e945]:
+                  - link "How the Colosseum Actually Worked 16 minutes" [ref=e946]:
+                    - /url: /watch?v=bmvxRMYxlhE&pp=ugUEEgJlbg%3D%3D
+                    - text: How the Colosseum Actually Worked
+                - generic [ref=e948]:
+                  - group [ref=e949]:
+                    - generic [ref=e950]:
+                      - text: Deconstructed
+                      - img [ref=e953]:
+                        - generic [ref=e955]:
+                          - img
+                  - group [ref=e956]:
+                    - generic [ref=e957]: 5.4M views
+                    - generic [ref=e958]: •
+                    - generic "1 year ago" [ref=e959]
+              - button "More actions" [ref=e962]:
+                - generic [ref=e966]:
+                  - img
+          - generic [ref=e971] [cursor=pointer]:
+            - link [ref=e972]:
+              - /url: /watch?v=kNuwCiuDz4E&pp=0gcJCToLAYcqIYzv
+              - generic [ref=e979]: 1:50:13
+            - generic [ref=e981]:
+              - generic [ref=e982]:
+                - heading "The ENTIRE History of Israel (Documentary) 1 hour, 50 minutes" [level=3] [ref=e983]:
+                  - link "The ENTIRE History of Israel (Documentary) 1 hour, 50 minutes" [ref=e984]:
+                    - /url: /watch?v=kNuwCiuDz4E&pp=0gcJCToLAYcqIYzv
+                    - text: The ENTIRE History of Israel (Documentary)
+                - generic [ref=e986]:
+                  - group [ref=e987]:
+                    - generic [ref=e988]: The Entire History
+                  - group [ref=e989]:
+                    - generic [ref=e990]: 1.2M views
+                    - generic [ref=e991]: •
+                    - generic "11 months ago" [ref=e992]
+              - button "More actions" [ref=e995]:
+                - generic [ref=e999]:
+                  - img
+          - generic [ref=e1004] [cursor=pointer]:
+            - link [ref=e1005]:
+              - /url: /watch?v=9oZVMcF55tQ
+              - generic [ref=e1012]: 1:11:02
+            - generic [ref=e1014]:
+              - generic [ref=e1015]:
+                - heading "UNSEEN WONDERS | Hidden Places Even Locals Can’t Believe Exist | Travel Video 4K 1 hour, 11 minutes" [level=3] [ref=e1016]:
+                  - link "UNSEEN WONDERS | Hidden Places Even Locals Can’t Believe Exist | Travel Video 4K 1 hour, 11 minutes" [ref=e1017]:
+                    - /url: /watch?v=9oZVMcF55tQ
+                    - text: UNSEEN WONDERS | Hidden Places Even Locals Can’t Believe Exist | Travel Video 4K
+                - generic [ref=e1019]:
+                  - group [ref=e1020]:
+                    - generic [ref=e1021]: New Travel Insight
+                  - group [ref=e1022]:
+                    - generic [ref=e1023]: 11M views
+                    - generic [ref=e1024]: •
+                    - generic "1 year ago" [ref=e1025]
+              - button "More actions" [ref=e1028]:
+                - generic [ref=e1032]:
+                  - img
+          - generic [ref=e1037] [cursor=pointer]:
+            - link [ref=e1038]:
+              - /url: /watch?v=syocq98pAy8
+              - generic [ref=e1045]: 3:06:12
+            - generic [ref=e1047]:
+              - generic [ref=e1048]:
+                - heading "The ENTIRE History of India | 4K Documentary 3 hours, 6 minutes" [level=3] [ref=e1049]:
+                  - link "The ENTIRE History of India | 4K Documentary 3 hours, 6 minutes" [ref=e1050]:
+                    - /url: /watch?v=syocq98pAy8
+                    - text: The ENTIRE History of India | 4K Documentary
+                - generic [ref=e1052]:
+                  - group [ref=e1053]:
+                    - generic [ref=e1054]:
+                      - text: Beginning To Now
+                      - img [ref=e1057]:
+                        - generic [ref=e1059]:
+                          - img
+                  - group [ref=e1060]:
+                    - generic [ref=e1061]: 350K views
+                    - generic [ref=e1062]: •
+                    - generic "6 months ago" [ref=e1063]
+              - button "More actions" [ref=e1066]:
+                - generic [ref=e1070]:
+                  - img
+          - generic [ref=e1075] [cursor=pointer]:
+            - link [ref=e1076]:
+              - /url: /watch?v=YOJAXNqfS-Q&pp=0gcJCToLAYcqIYzv
+              - generic [ref=e1083]: 3:18:00
+            - generic [ref=e1085]:
+              - generic [ref=e1086]:
+                - heading "David Attenborough Explores Earth’s Greatest Wonders (4K Documentary) 3 hours, 18 minutes" [level=3] [ref=e1087]:
+                  - link "David Attenborough Explores Earth’s Greatest Wonders (4K Documentary) 3 hours, 18 minutes" [ref=e1088]:
+                    - /url: /watch?v=YOJAXNqfS-Q&pp=0gcJCToLAYcqIYzv
+                    - text: David Attenborough Explores Earth’s Greatest Wonders (4K Documentary)
+                - generic [ref=e1090]:
+                  - group [ref=e1091]:
+                    - generic [ref=e1092]:
+                      - text: Our World
+                      - img [ref=e1095]:
+                        - generic [ref=e1097]:
+                          - img
+                  - group [ref=e1098]:
+                    - generic [ref=e1099]: 2.5M views
+                    - generic [ref=e1100]: •
+                    - generic "7 months ago" [ref=e1101]
+              - button "More actions" [ref=e1104]:
+                - generic [ref=e1108]:
+                  - img
+          - button "Show more" [ref=e1116] [cursor=pointer]:
+            - generic [ref=e1117]: Show more
+        - heading "Comments" [level=2] [ref=e1126]:
+          - generic [ref=e1127]: Comments
