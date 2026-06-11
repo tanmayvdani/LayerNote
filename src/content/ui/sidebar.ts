@@ -43,6 +43,12 @@ export function mountSidebarUI(video: HTMLVideoElement | null): void {
       showToastContainer();
     }
     updateButtonState();
+    if (pendingFocusNote) {
+      pendingFocusNote = false;
+      requestAnimationFrame(() => {
+        focusNoteInput();
+      });
+    }
   });
 }
 
@@ -106,18 +112,20 @@ function updatePanelState(): void {
   }
 }
 
+let pendingFocusNote = false;
+
 function handlePlayerAddNote(): void {
   const state = layerStore.getState();
 
   if (!state.activeLayer) {
+    pendingFocusNote = true;
     layerStore.getState().createLayer('');
-    setTimeout(() => focusNoteInput(), 100);
     return;
   }
 
   if (state.activeTab !== 'own') {
+    pendingFocusNote = true;
     layerStore.getState().switchToOwnLayer();
-    setTimeout(() => focusNoteInput(), 150);
     return;
   }
 
@@ -126,9 +134,11 @@ function handlePlayerAddNote(): void {
 
 function focusNoteInput(): void {
   const noteInput = document.getElementById('layer-note-input') as HTMLInputElement | null;
-  if (noteInput && currentVideo) {
-    const tsBadge = document.getElementById('layer-ts-badge');
-    if (tsBadge) tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
+  if (noteInput) {
+    if (currentVideo) {
+      const tsBadge = document.getElementById('layer-ts-badge');
+      if (tsBadge) tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
+    }
     noteInput.focus();
   }
 }
@@ -186,9 +196,12 @@ function buildPanel(): HTMLElement {
     const tabBar = document.createElement('div');
     tabBar.className = 'layer-tab-bar';
 
-    const ownTab = document.createElement('button');
-    ownTab.className = 'layer-tab' + (state.activeTab === 'own' ? ' layer-tab-active' : '');
-    ownTab.textContent = 'My Notes';
+    const ownTab = document.createElement('div');
+    ownTab.className = 'layer-tab-item' + (state.activeTab === 'own' ? ' layer-tab-item-active' : '');
+    const ownLabel = document.createElement('span');
+    ownLabel.className = 'layer-tab-label';
+    ownLabel.textContent = 'My Notes';
+    ownTab.appendChild(ownLabel);
     ownTab.addEventListener('click', (e) => {
       e.stopPropagation();
       if (state.activeTab !== 'own') {
@@ -198,10 +211,13 @@ function buildPanel(): HTMLElement {
       }
     });
 
-    const sharedTab = document.createElement('button');
-    sharedTab.className = 'layer-tab' + (state.activeTab === 'shared' ? ' layer-tab-active' : '');
+    const sharedTab = document.createElement('div');
+    sharedTab.className = 'layer-tab-item' + (state.activeTab === 'shared' ? ' layer-tab-item-active' : '');
+    const sharedLabel = document.createElement('span');
+    sharedLabel.className = 'layer-tab-label';
     const sharedCount = state.sharedLayers.size;
-    sharedTab.textContent = 'Shared' + (sharedCount > 0 ? ` (${sharedCount})` : '');
+    sharedLabel.textContent = 'Shared' + (sharedCount > 0 ? ` (${sharedCount})` : '');
+    sharedTab.appendChild(sharedLabel);
     sharedTab.addEventListener('click', (e) => {
       e.stopPropagation();
       if (state.activeTab !== 'shared') {
@@ -209,9 +225,12 @@ function buildPanel(): HTMLElement {
       }
     });
 
-    const browseTab = document.createElement('button');
-    browseTab.className = 'layer-tab' + (state.activeTab === 'browse' ? ' layer-tab-active' : '');
-    browseTab.textContent = 'Browse';
+    const browseTab = document.createElement('div');
+    browseTab.className = 'layer-tab-item' + (state.activeTab === 'browse' ? ' layer-tab-item-active' : '');
+    const browseLabel = document.createElement('span');
+    browseLabel.className = 'layer-tab-label';
+    browseLabel.textContent = 'Browse';
+    browseTab.appendChild(browseLabel);
     browseTab.addEventListener('click', (e) => {
       e.stopPropagation();
       layerStore.getState().setActiveTab('browse');

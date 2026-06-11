@@ -112,41 +112,40 @@ export const SIDEBAR_STYLES = `
 
 .layer-tab-bar {
   display: flex;
-  gap: 2px;
-  background: #272727;
-  border-radius: 6px;
-  padding: 2px;
+  width: 100%;
+  border-bottom: 1px solid #272727;
   margin-left: 4px;
+  margin-right: -8px;
 }
 
-.layer-tab {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 11px;
+.layer-tab-item {
+  position: relative;
+  cursor: pointer;
+  padding: 0 12px 10px 12px;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.layer-tab-label {
+  color: #717171;
+  font-size: 12px;
   font-family: inherit;
   font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
   white-space: nowrap;
+  transition: color 0.2s;
 }
 
-.layer-tab:hover {
+.layer-tab-item:hover .layer-tab-label {
   color: #f1f1f1;
-  background: #333;
 }
 
-.layer-tab-active {
-  background: #3ea6ff !important;
-  color: #0f0f0f !important;
+.layer-tab-item-active {
+  border-bottom-color: #f1f1f1;
+}
+
+.layer-tab-item-active .layer-tab-label {
+  color: #f1f1f1;
   font-weight: 600;
-}
-
-.layer-tab-active:hover {
-  background: #65b8ff !important;
-  color: #0f0f0f !important;
 }
 
 /* ── Create bar ── */
