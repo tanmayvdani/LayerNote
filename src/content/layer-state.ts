@@ -469,7 +469,11 @@ export const layerStore = createStore<LayerState>((set, get) => ({
 
     const ownerToken = await LocalStorageManager.getOwnerToken();
     const ownLayer = await LocalStorageManager.findOwnLayerByVideo(videoId, ownerToken);
-    if (!ownLayer) return;
+
+    if (!ownLayer) {
+      await get().createLayer('');
+      return;
+    }
 
     const ownAnnotations = await LocalStorageManager.getAnnotationsForLayer(ownLayer.id);
     const ownAnnotationMap = buildAnnotationMap(ownAnnotations);

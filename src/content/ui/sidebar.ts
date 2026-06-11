@@ -192,7 +192,7 @@ function buildPanel(): HTMLElement {
   chevron.textContent = '\u25BC';
   headerLeft.appendChild(chevron);
 
-  if (state.activeLayer || state.sharedLayers.size > 0) {
+  if (state.videoId) {
     const tabBar = document.createElement('div');
     tabBar.className = 'layer-tab-bar';
 
@@ -205,8 +205,10 @@ function buildPanel(): HTMLElement {
     ownTab.addEventListener('click', (e) => {
       e.stopPropagation();
       if (state.activeTab !== 'own') {
-        if (state.activeLayer && state.videoId) {
+        if (state.sharedLayers.size > 0) {
           layerStore.getState().switchToOwnLayer();
+        } else {
+          layerStore.getState().setActiveTab('own');
         }
       }
     });
@@ -221,7 +223,11 @@ function buildPanel(): HTMLElement {
     sharedTab.addEventListener('click', (e) => {
       e.stopPropagation();
       if (state.activeTab !== 'shared') {
-        layerStore.getState().switchToSharedLayer();
+        if (state.sharedLayers.size > 0) {
+          layerStore.getState().switchToSharedLayer();
+        } else {
+          layerStore.getState().setActiveTab('shared');
+        }
       }
     });
 
@@ -328,31 +334,18 @@ function buildPanel(): HTMLElement {
 function renderOwnTab(state: ReturnType<typeof layerStore.getState>): HTMLElement {
   const container = document.createElement('div');
 
-  if (!state.activeLayer || state.activeTab !== 'own') {
+  if (!state.activeLayer) {
     const cta = document.createElement('div');
     cta.className = 'layer-create-cta';
-
-    if (!state.activeLayer) {
-      cta.innerHTML = '<p>Create your own notes on this video</p>';
-      const createBtn = document.createElement('button');
-      createBtn.className = 'layer-btn-primary';
-      createBtn.textContent = 'Start Annotating';
-      createBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        layerStore.getState().createLayer('');
-      });
-      cta.appendChild(createBtn);
-    } else {
-      cta.innerHTML = '<p>Switch to your notes to edit</p>';
-      const switchBtn = document.createElement('button');
-      switchBtn.className = 'layer-btn-primary';
-      switchBtn.textContent = 'Switch to My Notes';
-      switchBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        layerStore.getState().switchToOwnLayer();
-      });
-      cta.appendChild(switchBtn);
-    }
+    cta.innerHTML = '<p>Create your own notes on this video</p>';
+    const createBtn = document.createElement('button');
+    createBtn.className = 'layer-btn-primary';
+    createBtn.textContent = 'Start Annotating';
+    createBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      layerStore.getState().createLayer('');
+    });
+    cta.appendChild(createBtn);
     container.appendChild(cta);
     return container;
   }
