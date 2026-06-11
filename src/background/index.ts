@@ -27,21 +27,28 @@ async function processOutboundSyncQueue(): Promise<void> {
     try {
       const annotations = await LocalStorageManager.getAnnotationsForLayer(layer.id);
 
+      const isPublic = layer.isPublic ?? false;
+      const likeCount = layer.likeCount ?? 0;
+      const dislikeCount = layer.dislikeCount ?? 0;
+
       const { error: layerError } = await supabase
         .from('layers')
         .upsert({
           id: layer.id,
           owner_token: layer.ownerToken,
-          owner_name: layer.ownerName,
+          owner_name: layer.ownerName || '',
           video_id: layer.youtubeVideoId,
           title: layer.title,
-          is_public: layer.isPublic,
-          like_count: layer.likeCount,
-          dislike_count: layer.dislikeCount,
+          is_public: isPublic,
+          like_count: likeCount,
+          dislike_count: dislikeCount,
           updated_at: new Date().toISOString()
         });
 
-      if (layerError) throw layerError;
+      if (layerError) {
+        console.error('Sync layer upsert error:', layerError.message, layerError.details, layerError.hint);
+        throw layerError;
+      }
 
       const { error: annError } = await supabase
         .from('annotations')
@@ -55,11 +62,15 @@ async function processOutboundSyncQueue(): Promise<void> {
           updated_at: new Date().toISOString()
         })));
 
-      if (annError) throw annError;
+      if (annError) {
+        console.error('Sync annotations upsert error:', annError.message, annError.details, annError.hint);
+        throw annError;
+      }
 
       await LocalStorageManager.updateLayerSyncState(layer.id, 'synced');
-    } catch (err) {
-      console.error('Sync failed for layer', layer.id, err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : (typeof err === 'object' && err !== null ? JSON.stringify(err) : String(err));
+      console.error('Sync failed for layer', layer.id, message);
       await LocalStorageManager.updateLayerSyncState(layer.id, 'error');
     }
   }
