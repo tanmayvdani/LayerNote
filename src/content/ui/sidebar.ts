@@ -5,6 +5,7 @@ import { injectSidebarStyles } from './styles';
 import { hideAllToasts, showToastContainer } from '../timestamp-engine';
 import { formatTimestamp, clipboardCopy } from '../utils';
 import { VIDEO_SELECTOR, MAX_CONTENT_LENGTH, MAX_USERNAME_LENGTH, TOAST_DURATION_MIN, TOAST_DURATION_MAX } from '../constants';
+import { showPlayerOverlay, setVideoRef } from './player-overlay';
 
 let panelExpanded = true;
 let settingsOpen = false;
@@ -16,6 +17,7 @@ let unsubscribeStore: (() => void) | null = null;
 
 export function mountSidebarUI(video: HTMLVideoElement | null): void {
   currentVideo = video;
+  setVideoRef(video);
   injectSidebarStyles();
   injectPlayerButton();
   injectPanel();
@@ -129,17 +131,32 @@ function handlePlayerAddNote(): void {
     return;
   }
 
-  focusNoteInput();
+  tryFocusSidebarOrCreateOverlay();
 }
 
-function focusNoteInput(): void {
+function tryFocusSidebarOrCreateOverlay(): void {
   const noteInput = document.getElementById('layer-note-input') as HTMLInputElement | null;
-  if (noteInput) {
+  if (noteInput && noteInput.offsetParent !== null) {
     if (currentVideo) {
       const tsBadge = document.getElementById('layer-ts-badge');
       if (tsBadge) tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
     }
     noteInput.focus();
+  } else {
+    showPlayerOverlay();
+  }
+}
+
+function focusNoteInput(): void {
+  const noteInput = document.getElementById('layer-note-input') as HTMLInputElement | null;
+  if (noteInput && noteInput.offsetParent !== null) {
+    if (currentVideo) {
+      const tsBadge = document.getElementById('layer-ts-badge');
+      if (tsBadge) tsBadge.textContent = formatTimestamp(currentVideo.currentTime);
+    }
+    noteInput.focus();
+  } else {
+    showPlayerOverlay();
   }
 }
 

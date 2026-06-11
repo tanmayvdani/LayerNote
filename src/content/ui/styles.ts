@@ -832,6 +832,65 @@ export const SIDEBAR_STYLES = `
   opacity: 0.4;
   cursor: default;
 }
+
+/* ── Player overlay note input ── */
+
+.layer-player-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999 !important;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 70px;
+  pointer-events: none;
+  animation: layer-toast-appear 0.2s ease-out;
+}
+
+.layer-player-overlay-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.layer-player-overlay-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  background: rgba(15, 15, 15, 0.95);
+  border: 1px solid rgba(62, 166, 255, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  max-width: min(480px, calc(100% - 40px));
+  width: 100%;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.layer-player-overlay-input {
+  background: transparent;
+  border: none;
+  color: #f1f1f1;
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  flex: 1;
+  outline: none;
+  caret-color: #3ea6ff;
+  min-width: 0;
+}
+
+.layer-player-overlay-input::placeholder {
+  color: #717171;
+}
 `;
 
 export function injectSidebarStyles(): void {
