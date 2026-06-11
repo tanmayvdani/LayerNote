@@ -182,7 +182,7 @@ function isDarkMode(): boolean {
 
 function getReactionIconHtml(type: 'like' | 'dislike', filled: boolean): string {
   const dark = isDarkMode();
-  const name = filled ? 'lm_like_filled' : (dark ? 'lm_like' : 'like');
+  const name = filled ? (dark ? 'like_filled' : 'lm_like_filled') : (dark ? 'like' : 'lm_like');
   const src = chrome.runtime.getURL(`icons/${name}.png`);
   const rotate = type === 'dislike' ? ' layer-reaction-icon-rotate' : '';
   return `<img class="layer-reaction-icon-img${rotate}" src="${src}" alt="${type}" draggable="false">`;
