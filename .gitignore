@@ -7,3 +7,4 @@ skills-lock.json
 .playwright-mcp/
 .playwright-profile/
 scripts/.playwright-profile/
+release/

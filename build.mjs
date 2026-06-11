@@ -1,8 +1,11 @@
 import { build } from 'esbuild';
-import { cpSync, mkdirSync, existsSync } from 'fs';
+import { cpSync, mkdirSync, existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const DIST = 'dist';
+const RELEASE_DIR = 'release';
+const RELEASE_PACKAGE = 'release/layernote';
+const ZIP_OUT = 'layernote.zip';
 
 const ENV_SUPABASE_URL = process.env.SUPABASE_URL || 'https://silgimyukbflpayzpwic.supabase.co';
 const ENV_SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_fjJV0YgwMkYKcH0e0bmnGg_YQNbBuvw';
@@ -13,6 +16,8 @@ const defineEnv = {
 };
 
 if (!existsSync(DIST)) mkdirSync(DIST, { recursive: true });
+else rmSync(DIST, { recursive: true, force: true });
+mkdirSync(DIST, { recursive: true });
 
 async function main() {
   await Promise.all([
@@ -43,10 +48,19 @@ async function main() {
     cpSync('icons', join(DIST, 'icons'), { recursive: true });
   }
 
-  console.log('Build complete.');
+  if (existsSync(RELEASE_PACKAGE)) {
+    rmSync(RELEASE_PACKAGE, { recursive: true, force: true });
+  }
+  mkdirSync(RELEASE_PACKAGE, { recursive: true });
+  cpSync(DIST, RELEASE_PACKAGE, { recursive: true });
+
+  if (!existsSync(RELEASE_DIR)) mkdirSync(RELEASE_DIR, { recursive: true });
+  console.log('Build complete. Release ready at release/layernote/');
+  console.log('Run: cd release && npx bestzip ../layernote.zip layernote');
 }
 
 main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+

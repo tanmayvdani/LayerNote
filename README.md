@@ -42,15 +42,27 @@ LayerNote is a high-performance Chrome extension (Manifest V3) that adds timesta
 
 ### 1. Download the latest release
 
-Grab the pre-built `layernote.zip` from the [Releases page](https://github.com/tanmayvdani/layernote/releases) and extract it somewhere you can find again.
+Grab the pre-built `layernote.zip` from the [Releases page](https://github.com/tanmayvdani/layernote/releases). The zip extracts to a single `layernote/` folder — pick somewhere you'll remember (e.g. `Downloads/layernote`).
 
-### 2. Load into Chrome or Edge
+### 2. Open your browser's extension page
 
-1. Open `chrome://extensions` (or `edge://extensions` in Edge)
-2. Toggle **Developer mode** in the top right
-3. Click **Load unpacked**
-4. Pick the extracted folder
-5. Open any YouTube video — LayerNote appears in the sidebar
+- Chrome: [chrome://extensions/](chrome://extensions/)
+- Edge: [edge://extensions/](edge://extensions/)
+
+### 3. Turn on Developer mode
+
+The toggle is in the top right corner of the extensions page. Flip it on.
+
+![Developer mode toggle in Chrome](screenshots/07-developer-toggle-chrome.png)
+![Developer mode toggle in Edge](screenshots/07-developer-toggle.png)
+
+### 4. Load the extension
+
+1. Click **Load unpacked** (top left after the toggle is on)
+2. In the file picker, select the `layernote` folder you extracted
+3. Open any YouTube video — LayerNote appears in the sidebar
+
+> **Tip:** if you see "Manifest version not supported" or similar, make sure you picked the `layernote` folder itself (the one that contains `manifest.json`), not its parent.
 
 ---
 
@@ -151,10 +163,11 @@ For contributors and release managers:
 ```bash
 npm install
 npm run build
-npx bestzip layernote.zip dist/*
+cd release
+npx bestzip ../layernote.zip layernote
 ```
 
-`layernote.zip` is the deployable bundle for the Chrome Web Store or manual installation.
+`npm run build` produces a `release/layernote/` folder that contains the full extension (manifest, JS bundles, icons). The zip command runs from inside `release/` and packages `layernote/` as a single entry, so unzipping yields one `layernote/` directory that users can load directly via **Load unpacked**.
 
 ---
 
