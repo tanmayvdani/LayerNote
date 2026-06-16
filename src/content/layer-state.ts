@@ -156,8 +156,12 @@ export const layerStore = createStore<LayerState>((set, get) => ({
       const persistedSharedIds = await LocalStorageManager.getSharedLayerIds();
       for (const sid of persistedSharedIds) {
         if (sid === sharedLayerId) continue;
+
+        const localLayer = await LocalStorageManager.getLayer(sid);
+        if (localLayer && localLayer.youtubeVideoId !== videoId) continue;
+
         const remotePayload = await LocalStorageManager.fetchRemoteLayer(sid);
-        if (remotePayload) {
+        if (remotePayload && remotePayload.layer.youtubeVideoId === videoId) {
           const currentShared = new Map(get().sharedLayers);
           currentShared.set(remotePayload.layer.id, {
             layer: remotePayload.layer,

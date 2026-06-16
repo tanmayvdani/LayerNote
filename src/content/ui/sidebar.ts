@@ -721,6 +721,15 @@ function renderSettings(): HTMLElement {
   return settings;
 }
 
+export function setActiveVideo(video: HTMLVideoElement | null): void {
+  currentVideo = video;
+  setVideoRef(video);
+  if (video) {
+    injectPlayerButton();
+  }
+  refreshPanel();
+}
+
 export function refreshPanel(): void {
   const panel = document.getElementById('layer-panel');
   const isCollapsed = panel?.classList.contains('layer-panel-collapsed') ?? !panelExpanded;

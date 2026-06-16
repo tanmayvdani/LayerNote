@@ -1,7 +1,7 @@
 import { layerStore } from './layer-state';
 import { SyncEngineInstance } from './timestamp-engine';
 import { LocalStorageManager } from '../storage/local';
-import { mountSidebarUI } from './ui/sidebar';
+import { mountSidebarUI, setActiveVideo } from './ui/sidebar';
 import { VIDEO_SELECTOR } from './constants';
 
 function waitForVideoElement(): Promise<HTMLVideoElement> {
@@ -45,6 +45,11 @@ export function initializeLinkInterception(): void {
       if (videoId === lastInitializedVideoId && !sharedLayerId) return;
       lastInitializedVideoId = videoId;
       layerStore.getState().initializeForVideo(videoId, sharedLayerId);
+
+      waitForVideoElement().then((video) => {
+        SyncEngineInstance.attachToPlayer(video);
+        setActiveVideo(video);
+      });
     }
   });
 }
