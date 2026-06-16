@@ -38,7 +38,7 @@ Copy-paste one of these into your address bar and press Enter:
 
 This is a toggle on the extensions page. You only have to do it once.
 
-- **Chrome:** top-right corner
+- **Chrome / Brave / Opera / Arc:** top-right corner
 - **Edge:** bottom-left corner
 
 <table>
@@ -54,7 +54,7 @@ This is a toggle on the extensions page. You only have to do it once.
 
 ### Step 5 — Click "Load unpacked"
 
-Once Developer mode is on, a new **Load unpacked** button appears at the top.
+Once Developer mode is on, a new **Load unpacked** button appears at the top of the page. (Brave, Opera, and Arc follow Chrome's layout here too.)
 
 <table>
 <tr>
@@ -156,6 +156,7 @@ LayerNote/
 │   │   └── index.ts
 │   ├── content/                 injected into YouTube pages
 │   │   ├── constants.ts         validation limits, selectors, defaults
+│   │   ├── utils.ts             shared helpers (timestamp formatting, clipboard, map building)
 │   │   ├── layer-state.ts       zustand store
 │   │   ├── timestamp-engine.ts  rAF sync loop, toast rendering
 │   │   ├── youtube.ts           entry point — page routing & init
